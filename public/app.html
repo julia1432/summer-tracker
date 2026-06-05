@@ -356,13 +356,11 @@ async function openChild(who){
 }
 
 async function refreshChild(who){
-  const [tasks,scoreArr,recs,shopItems,myReqs]=await Promise.all([
-    q('tasks?select=*&who=eq.'+who+'&order=sort_order'),
-    q('scores?select=points&who=eq.'+who),
-    q('daily_records?select=task_id,status&date=eq.'+TODAY+'&who=eq.'+who),
-    q('shop_items?select=*&order=sort_order'),
-    q('shop_requests?select=*&who=eq.'+who+'&status=eq.pending')
-  ]);
+  const tasks=await q('tasks?select=*&who=eq.'+who+'&order=sort_order');
+  const scoreArr=await q('scores?select=points&who=eq.'+who);
+  const recs=await q('daily_records?select=task_id,status&date=eq.'+TODAY+'&who=eq.'+who);
+  const shopItems=await q('shop_items?select=*&order=sort_order');
+  const myReqs=await q('shop_requests?select=*&who=eq.'+who+'&status=eq.pending');
   const score=scoreArr&&scoreArr[0]?scoreArr[0].points:0;
   const recMap={};(recs||[]).forEach(r=>recMap[r.task_id]=r.status);
   const todayTasks=(tasks||[]).filter(t=>isTaskActive(t,TODAY));
@@ -463,16 +461,14 @@ async function openParent(){
 
 async function refreshParent(){
   const weekDates=getWeekDates();
-  const [vTasks,aTasks,scores,vRecs,aRecs,shopItems,shopReqs,allRecs]=await Promise.all([
-    q('tasks?select=*&who=eq.vova&order=sort_order'),
-    q('tasks?select=*&who=eq.alisa&order=sort_order'),
-    q('scores?select=*'),
-    q('daily_records?select=task_id,status&date=eq.'+TODAY+'&who=eq.vova'),
-    q('daily_records?select=task_id,status&date=eq.'+TODAY+'&who=eq.alisa'),
-    q('shop_items?select=*&order=sort_order'),
-    q('shop_requests?select=*&status=eq.pending&order=created_at'),
-    q('daily_records?select=date,who,task_id,status&date=gte.'+weekDates[0]+'&date=lte.'+weekDates[6])
-  ]);
+  const vTasks=await q('tasks?select=*&who=eq.vova&order=sort_order');
+  const aTasks=await q('tasks?select=*&who=eq.alisa&order=sort_order');
+  const scores=await q('scores?select=*');
+  const vRecs=await q('daily_records?select=task_id,status&date=eq.'+TODAY+'&who=eq.vova');
+  const aRecs=await q('daily_records?select=task_id,status&date=eq.'+TODAY+'&who=eq.alisa');
+  const shopItems=await q('shop_items?select=*&order=sort_order');
+  const shopReqs=await q('shop_requests?select=*&status=eq.pending&order=created_at');
+  const allRecs=await q('daily_records?select=date,who,task_id,status&date=gte.'+weekDates[0]+'&date=lte.'+weekDates[6]);
   const data={
     vova:{tasks:(vTasks||[]).filter(t=>isTaskActive(t,TODAY)),allTasks:vTasks||[],score:(scores||[]).find(s=>s.who==='vova')?.points||0,records:{},weekAllDone:false},
     alisa:{tasks:(aTasks||[]).filter(t=>isTaskActive(t,TODAY)),allTasks:aTasks||[],score:(scores||[]).find(s=>s.who==='alisa')?.points||0,records:{},weekAllDone:false}
