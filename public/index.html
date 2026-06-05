@@ -380,8 +380,8 @@ async function refreshChild(who) {
     const dt=allTasks.filter(t=>isTaskActive(t,wd));
     weekData[wd]={allDone:dt.every(t=>rm[t.id]==='approved'||rm[t.id]==='cancelled')};
   });
-  const bonusRes = await sb.from('state').select('*').eq('key','weekbonus:'+who+':'+getWeekStart()).single();
-  const weekBonusGiven=!!bonusRes.data;
+  let weekBonusGiven = false;
+  try { const bonusRes = await sb.from('state').select('*').eq('key','weekbonus:'+who+':'+getWeekStart()).single(); weekBonusGiven=!!bonusRes.data; } catch(e){}
 
   document.getElementById('ch-score-num').textContent=score;
   renderDayStrip(who,weekDates,weekData);
@@ -489,8 +489,9 @@ async function refreshParent(){
   ]);
   const weekDates=getWeekDates();
   const allRecs=await sb.from('daily_records').select('*').in('date',weekDates);
-  const bonusV=await sb.from('state').select('*').eq('key','weekbonus:vova:'+getWeekStart()).single();
-  const bonusA=await sb.from('state').select('*').eq('key','weekbonus:alisa:'+getWeekStart()).single();
+  let bonusV={data:null},bonusA={data:null};
+  try{bonusV=await sb.from('state').select('*').eq('key','weekbonus:vova:'+getWeekStart()).single();}catch(e){}
+  try{bonusA=await sb.from('state').select('*').eq('key','weekbonus:alisa:'+getWeekStart()).single();}catch(e){}
 
   const data={
     vova:{tasks:(vTasks.data||[]).filter(t=>isTaskActive(t,TODAY)),allTasks:vTasks.data||[],score:scores.data?.find(s=>s.who==='vova')?.points||0,records:{},weekAllDone:false,weekBonusGiven:!!bonusV.data},
@@ -606,7 +607,9 @@ async function addShopItem(){
   const msg=document.getElementById('add-shop-msg');
   if(!name){msg.className='msg err';msg.textContent='Введи название';return;}
   if(!cost||cost<1){msg.className='msg err';msg.textContent='Введи стоимость';return;}
-  await sb.from('shop_items').insert({id:'shop_'+Date.now(),name,cost,emoji,sort_order:Date.now()});
+  const shopId='shop_'+Date.now();
+  const {error:shopErr}=await sb.from('shop_items').insert({id:shopId,name,cost,emoji,sort_order:0});
+  if(shopErr){msg.className='msg err';msg.textContent='Ошибка: '+shopErr.message;return;}
   document.getElementById('new-shop-name').value='';document.getElementById('new-shop-cost').value='';document.getElementById('new-shop-emoji').value='🎁';
   msg.className='msg ok';msg.textContent='Приз добавлен!';setTimeout(()=>msg.textContent='',2000);
   await refreshParent();
@@ -628,8 +631,7 @@ async function restoreTask(who,taskId){
   await refreshParent();
 }
 async function giveBonus(who){
-  const key='weekbonus:'+who+':'+getWeekStart();
-  await sb.from('state').upsert({key,value:'1'},{onConflict:'key'});
+  try{const key='weekbonus:'+who+':'+getWeekStart();await sb.from('state').upsert({key,value:'1'},{onConflict:'key'});}catch(e){}
   const cur=(await sb.from('scores').select('points').eq('who',who).single()).data?.points||0;
   await sb.from('scores').update({points:cur+100}).eq('who',who);
   await refreshParent();
@@ -672,7 +674,10 @@ async function addTask(){
   if(!name){msg.className='msg err';msg.textContent='Введи название';return;}
   if(!points||points<1){msg.className='msg err';msg.textContent='Введи баллы';return;}
   const targets=who==='both'?['vova','alisa']:[who];
-  for(const w of targets)await sb.from('tasks').insert({id:'t_'+Date.now()+'_'+w,who:w,name,points,freq,days,cancellable,icon:'star',sort_order:Date.now()});
+  for(const w of targets){
+    const {error:tErr}=await sb.from('tasks').insert({id:'t_'+Date.now()+'_'+w,who:w,name,points,freq,days,cancellable,icon:'star',sort_order:0});
+    if(tErr){msg.className='msg err';msg.textContent='Ошибка: '+tErr.message;return;}
+  }
   document.getElementById('new-task-name').value='';
   msg.className='msg ok';msg.textContent='Задание добавлено!';setTimeout(()=>msg.textContent='',2000);
   await refreshParent();
