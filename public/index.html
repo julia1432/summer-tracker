@@ -381,7 +381,7 @@ async function refreshChild(who) {
     weekData[wd]={allDone:dt.every(t=>rm[t.id]==='approved'||rm[t.id]==='cancelled')};
   });
   let weekBonusGiven = false;
-  try { const bonusRes = await sb.from('state').select('*').eq('key','weekbonus:'+who+':'+getWeekStart()).single(); weekBonusGiven=!!bonusRes.data; } catch(e){}
+  try { const bonusRes = await sb.from('state').select('*').eq('key','weekbonus:'+who+':'+getWeekStart()).maybeSingle(); weekBonusGiven=!!bonusRes.data; } catch(e){}
 
   document.getElementById('ch-score-num').textContent=score;
   renderDayStrip(who,weekDates,weekData);
@@ -456,7 +456,7 @@ function renderChildShop(who,items,score,myReqs){
 }
 
 async function toggleCheck(who,taskId){
-  const {data}=await sb.from('daily_records').select('*').eq('date',TODAY).eq('who',who).eq('task_id',taskId).single();
+  const {data}=await sb.from('daily_records').select('*').eq('date',TODAY).eq('who',who).eq('task_id',taskId).maybeSingle();
   if(data&&data.status==='checked') await sb.from('daily_records').delete().eq('date',TODAY).eq('who',who).eq('task_id',taskId);
   else if(!data) await sb.from('daily_records').insert({date:TODAY,who,task_id:taskId,status:'checked'});
   await refreshChild(who);
@@ -490,8 +490,8 @@ async function refreshParent(){
   const weekDates=getWeekDates();
   const allRecs=await sb.from('daily_records').select('*').in('date',weekDates);
   let bonusV={data:null},bonusA={data:null};
-  try{bonusV=await sb.from('state').select('*').eq('key','weekbonus:vova:'+getWeekStart()).single();}catch(e){}
-  try{bonusA=await sb.from('state').select('*').eq('key','weekbonus:alisa:'+getWeekStart()).single();}catch(e){}
+  try{bonusV=await sb.from('state').select('*').eq('key','weekbonus:vova:'+getWeekStart()).maybeSingle();}catch(e){}
+  try{bonusA=await sb.from('state').select('*').eq('key','weekbonus:alisa:'+getWeekStart()).maybeSingle();}catch(e){}
 
   const data={
     vova:{tasks:(vTasks.data||[]).filter(t=>isTaskActive(t,TODAY)),allTasks:vTasks.data||[],score:scores.data?.find(s=>s.who==='vova')?.points||0,records:{},weekAllDone:false,weekBonusGiven:!!bonusV.data},
