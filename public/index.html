@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Летний трекер ⭐</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -18,31 +19,16 @@
   --radius: 14px; --radius-sm: 8px;
 }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gray-bg); min-height: 100vh; color: var(--text); }
-
 .screen { display: none; padding: 16px; max-width: 480px; margin: 0 auto; padding-bottom: 32px; }
 .screen.active { display: block; }
-
-/* PROFILE SCREEN */
 .profiles-wrap { padding-top: 24px; }
-.app-title { text-align: center; font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.app-title { text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 4px; }
 .app-sub { text-align: center; font-size: 14px; color: var(--text2); margin-bottom: 28px; }
-.profile-btn {
-  display: flex; align-items: center; gap: 14px;
-  background: var(--card-bg); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 16px 18px;
-  cursor: pointer; width: 100%; margin-bottom: 10px;
-  transition: transform 0.1s, box-shadow 0.1s;
-}
+.profile-btn { display: flex; align-items: center; gap: 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; cursor: pointer; width: 100%; margin-bottom: 10px; transition: transform 0.1s; }
 .profile-btn:active { transform: scale(0.98); }
 .p-avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
-.p-av-vova { background: var(--blue-light); }
-.p-av-alisa { background: var(--pink-light); }
-.p-av-parent { background: var(--green-light); }
-.p-name { font-size: 17px; font-weight: 600; color: var(--text); }
-.p-hint { font-size: 13px; color: var(--text2); margin-top: 2px; }
-.p-arrow { margin-left: auto; color: var(--text3); font-size: 18px; }
-
-/* PIN */
+.p-av-vova { background: var(--blue-light); } .p-av-alisa { background: var(--pink-light); } .p-av-parent { background: var(--green-light); }
+.p-name { font-size: 17px; font-weight: 600; } .p-hint { font-size: 13px; color: var(--text2); margin-top: 2px; } .p-arrow { margin-left: auto; color: var(--text3); font-size: 18px; }
 .pin-backdrop { background: rgba(0,0,0,0.4); border-radius: var(--radius); padding: 24px; margin-bottom: 12px; display: none; }
 .pin-backdrop.show { display: block; }
 .pin-box { background: var(--card-bg); border-radius: var(--radius); padding: 24px 20px; text-align: center; }
@@ -51,164 +37,110 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #ccc; background: transparent; transition: all 0.15s; }
 .pin-dot.filled { background: var(--green); border-color: var(--green); }
 .pin-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
-.pin-key { padding: 14px 0; border-radius: var(--radius-sm); background: var(--gray-bg); border: 1px solid var(--border); font-size: 20px; font-weight: 500; cursor: pointer; transition: all 0.1s; }
-.pin-key:active { transform: scale(0.95); background: #e0e0d8; }
+.pin-key { padding: 14px 0; border-radius: var(--radius-sm); background: var(--gray-bg); border: 1px solid var(--border); font-size: 20px; font-weight: 500; cursor: pointer; }
+.pin-key:active { transform: scale(0.95); }
 .pin-err { font-size: 13px; color: #c0392b; min-height: 18px; }
 .pin-cancel { font-size: 13px; color: var(--text2); cursor: pointer; margin-top: 8px; display: inline-block; }
-
-/* CHILD HEADER */
 .back-btn { display: flex; align-items: center; gap: 6px; color: var(--text2); font-size: 14px; cursor: pointer; background: none; border: none; padding: 0; margin-bottom: 16px; }
 .child-header { border-radius: var(--radius); padding: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
-.ch-vova { background: var(--blue-light); }
-.ch-alisa { background: var(--pink-light); }
+.ch-vova { background: var(--blue-light); } .ch-alisa { background: var(--pink-light); }
 .ch-left { display: flex; align-items: center; gap: 12px; }
 .ch-name { font-size: 20px; font-weight: 700; }
-.ch-name-vova { color: var(--blue-dark); }
-.ch-name-alisa { color: var(--pink-dark); }
+.ch-name-vova { color: var(--blue-dark); } .ch-name-alisa { color: var(--pink-dark); }
 .ch-date { font-size: 12px; color: var(--text2); margin-top: 2px; }
 .score-pill { border-radius: 20px; padding: 8px 16px; display: flex; flex-direction: column; align-items: center; }
-.sp-vova { background: var(--blue-mid); }
-.sp-alisa { background: var(--pink-mid); }
+.sp-vova { background: var(--blue-mid); } .sp-alisa { background: var(--pink-mid); }
 .sp-num { font-size: 24px; font-weight: 700; line-height: 1; }
-.sp-num-vova { color: var(--blue-dark); }
-.sp-num-alisa { color: var(--pink-dark); }
+.sp-num-vova { color: var(--blue-dark); } .sp-num-alisa { color: var(--pink-dark); }
 .sp-lbl { font-size: 11px; margin-top: 1px; }
-.sp-lbl-vova { color: #185FA5; }
-.sp-lbl-alisa { color: var(--pink); }
-
-/* DAY STRIP */
+.sp-lbl-vova { color: #185FA5; } .sp-lbl-alisa { color: var(--pink); }
 .day-strip { display: flex; gap: 4px; margin-bottom: 12px; }
 .day-pill { flex: 1; text-align: center; padding: 6px 2px; border-radius: var(--radius-sm); font-size: 11px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text2); }
 .day-pill .dp-num { font-size: 13px; font-weight: 600; margin-top: 2px; }
 .dp-today-vova { background: var(--blue-light); border-color: var(--blue-mid); color: var(--blue-dark); }
 .dp-today-alisa { background: var(--pink-light); border-color: var(--pink-mid); color: var(--pink-dark); }
 .dp-done { background: var(--green-light); border-color: var(--green-mid); color: var(--green-dark); }
-
-/* WEEK BANNER */
 .week-banner { border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; font-size: 13px; }
-.wb-vova { background: var(--green-light); color: var(--green-dark); }
-.wb-alisa { background: var(--pink-light); color: var(--pink-dark); }
-.wb-bonus { background: var(--amber-light); color: var(--amber-dark); }
-
-/* SECTION LABEL */
+.wb-vova { background: var(--green-light); color: var(--green-dark); } .wb-alisa { background: var(--pink-light); color: var(--pink-dark); } .wb-bonus { background: var(--amber-light); color: var(--amber-dark); }
 .sec-label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; margin-top: 4px; }
-
-/* TASK CARDS */
-.task-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; transition: all 0.15s; }
-.task-card.done { border-color: #97C459; }
-.task-card.cancelled { opacity: 0.4; }
-.task-check { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; font-size: 15px; background: transparent; }
+.task-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+.task-card.done { border-color: #97C459; } .task-card.cancelled { opacity: 0.4; }
+.task-check { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-size: 15px; background: transparent; }
 .task-check.ch-vova-done { background: var(--blue); border-color: var(--blue); color: #fff; }
 .task-check.ch-alisa-done { background: var(--pink); border-color: var(--pink); color: #fff; }
 .task-check.ch-pending { border-color: #FAC775; }
 .task-info { flex: 1; min-width: 0; }
-.task-name { font-size: 15px; color: var(--text); font-weight: 500; }
+.task-name { font-size: 15px; font-weight: 500; }
 .task-meta { font-size: 12px; color: var(--text2); margin-top: 2px; }
 .task-pts { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 20px; flex-shrink: 0; }
-.tp-vova { background: var(--blue-light); color: var(--blue-dark); }
-.tp-alisa { background: var(--pink-light); color: var(--pink-dark); }
-.tp-done { background: var(--green-light); color: var(--green-dark); }
-
-/* SHOP - child view */
+.tp-vova { background: var(--blue-light); color: var(--blue-dark); } .tp-alisa { background: var(--pink-light); color: var(--pink-dark); } .tp-done { background: var(--green-light); color: var(--green-dark); }
 .shop-section { margin-top: 20px; }
 .shop-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
 .shop-emoji { font-size: 28px; flex-shrink: 0; width: 44px; text-align: center; }
 .shop-info { flex: 1; min-width: 0; }
-.shop-name { font-size: 15px; font-weight: 500; color: var(--text); }
-.shop-cost { font-size: 13px; color: var(--text2); margin-top: 2px; }
-.shop-action { flex-shrink: 0; }
-.want-btn { font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 20px; border: none; cursor: pointer; transition: all 0.15s; }
-.want-btn-vova { background: var(--blue); color: #fff; }
-.want-btn-alisa { background: var(--pink); color: #fff; }
-.want-btn:active { transform: scale(0.95); }
-.want-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.shop-name { font-size: 15px; font-weight: 500; } .shop-cost { font-size: 13px; color: var(--text2); margin-top: 2px; }
+.want-btn { font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 20px; border: none; cursor: pointer; }
+.want-btn-vova { background: var(--blue); color: #fff; } .want-btn-alisa { background: var(--pink); color: #fff; }
+.want-btn:active { transform: scale(0.95); } .want-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .want-btn.sent { background: var(--green-light); color: var(--green-dark); }
 .request-badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; background: var(--amber-light); color: var(--amber-dark); margin-top: 4px; display: inline-block; }
-
-/* PARENT */
 .parent-header { background: var(--green-light); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 14px; }
 .parent-title { font-size: 18px; font-weight: 700; color: var(--green-dark); }
 .parent-date { font-size: 12px; color: var(--green); margin-top: 2px; }
-
 .parent-child { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
 .pch-header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
-.pch-h-vova { background: var(--blue-light); }
-.pch-h-alisa { background: var(--pink-light); }
+.pch-h-vova { background: var(--blue-light); } .pch-h-alisa { background: var(--pink-light); }
 .pch-name { font-size: 16px; font-weight: 700; }
-.pch-name-vova { color: var(--blue-dark); }
-.pch-name-alisa { color: var(--pink-dark); }
+.pch-name-vova { color: var(--blue-dark); } .pch-name-alisa { color: var(--pink-dark); }
 .pch-score { font-size: 20px; font-weight: 700; }
-.pch-score-vova { color: var(--blue-dark); }
-.pch-score-alisa { color: var(--pink-dark); }
+.pch-score-vova { color: var(--blue-dark); } .pch-score-alisa { color: var(--pink-dark); }
 .pch-score-lbl { font-size: 11px; color: var(--text2); }
-
 .p-task-row { padding: 10px 16px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
 .p-status { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
-.ps-done { background: var(--green-light); color: var(--green-dark); }
-.ps-pending { background: var(--amber-light); color: var(--amber-dark); }
-.ps-cancelled { background: #f0f0ec; color: var(--text3); }
-.ps-missed { background: var(--red-light); color: var(--red-dark); }
-.p-task-name { flex: 1; font-size: 14px; color: var(--text); }
+.ps-done { background: var(--green-light); color: var(--green-dark); } .ps-pending { background: var(--amber-light); color: var(--amber-dark); }
+.ps-cancelled { background: #f0f0ec; color: var(--text3); } .ps-missed { background: var(--red-light); color: var(--red-dark); }
+.p-task-name { flex: 1; font-size: 14px; }
 .p-task-name.strike { color: var(--text3); text-decoration: line-through; }
 .p-actions { display: flex; gap: 6px; flex-shrink: 0; }
-.p-btn { font-size: 12px; padding: 5px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: #f5f4f0; cursor: pointer; color: var(--text); font-weight: 500; }
+.p-btn { font-size: 12px; padding: 5px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: #f5f4f0; cursor: pointer; font-weight: 500; }
 .p-btn:active { transform: scale(0.96); }
 .p-btn.approve { background: var(--green-light); border-color: #97C459; color: var(--green-dark); }
 .p-btn.cancel { background: var(--red-light); border-color: var(--red-mid); color: var(--red-dark); }
 .p-btn.restore { background: var(--amber-light); border-color: #FAC775; color: var(--amber-dark); }
 .p-bonus-row { padding: 10px 16px; border-top: 1px solid var(--border); background: var(--amber-light); display: flex; align-items: center; gap: 10px; }
 .p-bonus-text { flex: 1; font-size: 14px; color: var(--amber-dark); font-weight: 500; }
-
-/* PARENT SECTIONS */
 .p-section { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; }
-.p-sec-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.p-sec-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 .p-sec-title i { font-size: 18px; color: var(--text2); }
 .p-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
 .p-row input, .p-row select { font-size: 14px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--gray-bg); color: var(--text); }
-.p-row input:focus, .p-row select:focus { outline: none; border-color: var(--blue); }
-.p-row input[type=text] { flex: 1; min-width: 0; }
-.p-row input[type=number] { width: 80px; }
+.p-row input[type=text] { flex: 1; min-width: 0; } .p-row input[type=number] { width: 80px; }
 .p-action-btn { font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: var(--radius-sm); border: none; cursor: pointer; white-space: nowrap; }
 .btn-green { background: var(--green-light); color: var(--green-dark); border: 1px solid #97C459; }
-.btn-red { background: var(--red-light); color: var(--red-dark); border: 1px solid var(--red-mid); }
-.btn-blue { background: var(--blue-light); color: var(--blue-dark); border: 1px solid var(--blue-mid); }
 .btn-amber { background: var(--amber-light); color: var(--amber-dark); border: 1px solid #FAC775; }
 .p-action-btn:active { transform: scale(0.97); }
 .msg { font-size: 12px; min-height: 16px; margin-top: 4px; }
-.msg.ok { color: #3B6D11; }
-.msg.err { color: #A32D2D; }
-
-/* SHOP ADMIN */
+.msg.ok { color: #3B6D11; } .msg.err { color: #A32D2D; }
 .shop-admin-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
 .shop-admin-item:last-child { border-bottom: none; }
 .shop-admin-emoji { font-size: 22px; width: 32px; text-align: center; flex-shrink: 0; }
-.shop-admin-name { flex: 1; font-size: 14px; color: var(--text); }
+.shop-admin-name { flex: 1; font-size: 14px; }
 .shop-admin-cost { font-size: 13px; font-weight: 600; color: var(--text2); margin-right: 4px; }
 .shop-edit-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; padding: 8px; background: var(--gray-bg); border-radius: var(--radius-sm); margin-bottom: 8px; }
 .shop-edit-row input { font-size: 13px; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; color: var(--text); }
-.shop-edit-row input[type=text] { flex: 1; min-width: 80px; }
-.shop-edit-row input[type=number] { width: 70px; }
+.shop-edit-row input[type=text] { flex: 1; min-width: 80px; } .shop-edit-row input[type=number] { width: 70px; }
 .emoji-input { width: 54px !important; text-align: center; font-size: 18px !important; }
-
-/* SHOP REQUESTS */
 .req-card { background: var(--amber-light); border: 1px solid #FAC775; border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
-.req-who { font-size: 20px; }
-.req-info { flex: 1; }
+.req-who { font-size: 20px; } .req-info { flex: 1; }
 .req-name { font-size: 14px; font-weight: 600; color: var(--amber-dark); }
 .req-meta { font-size: 12px; color: var(--amber); }
-
-/* DAYS PICKER */
 .days-picker { display: flex; gap: 4px; flex-wrap: wrap; }
 .day-toggle { padding: 5px 9px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); background: var(--gray-bg); cursor: pointer; color: var(--text2); }
 .day-toggle.on { background: var(--blue); color: #fff; border-color: var(--blue); }
-
-/* TABS */
 .tabs { display: flex; gap: 0; background: var(--gray-bg); border-radius: var(--radius-sm); padding: 3px; margin-bottom: 14px; }
-.tab { flex: 1; text-align: center; padding: 8px 0; font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer; color: var(--text2); transition: all 0.15s; }
-.tab.active { background: var(--card-bg); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-
+.tab { flex: 1; text-align: center; padding: 8px 0; font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer; color: var(--text2); }
+.tab.active { background: var(--card-bg); color: var(--text); }
 .spinner { text-align: center; padding: 40px; color: var(--text2); font-size: 14px; }
-
 @media (prefers-color-scheme: dark) {
   :root { --gray-bg: #1a1a1a; --card-bg: #252525; --border: rgba(255,255,255,0.1); --text: #f0f0f0; --text2: #aaa; --text3: #666; }
   .pin-key { background: #333; }
@@ -223,25 +155,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 <div id="screen-profiles" class="screen active profiles-wrap">
   <div class="app-title">Летний трекер ⭐</div>
   <div class="app-sub">Кто ты сегодня?</div>
-
   <button class="profile-btn" onclick="openChild('vova')">
     <div class="p-avatar p-av-vova">🚀</div>
     <div><div class="p-name">Вова</div><div class="p-hint">9 лет · мои задания</div></div>
     <i class="ti ti-chevron-right p-arrow"></i>
   </button>
-
   <button class="profile-btn" onclick="openChild('alisa')">
     <div class="p-avatar p-av-alisa">🌸</div>
     <div><div class="p-name">Алиса</div><div class="p-hint">7 лет · мои задания</div></div>
     <i class="ti ti-chevron-right p-arrow"></i>
   </button>
-
   <button class="profile-btn" onclick="showPin()">
     <div class="p-avatar p-av-parent">🔑</div>
     <div><div class="p-name">Родитель</div><div class="p-hint">управление и проверка</div></div>
     <i class="ti ti-chevron-right p-arrow"></i>
   </button>
-
   <div class="pin-backdrop" id="pin-backdrop">
     <div class="pin-box">
       <div class="pin-title">Введи PIN-код</div>
@@ -289,17 +217,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="parent-title">Панель родителя 🔑</div>
     <div class="parent-date" id="p-date"></div>
   </div>
-
   <div class="tabs">
     <div class="tab active" onclick="pTab('tasks',this)">Задания</div>
     <div class="tab" onclick="pTab('shop',this)">Магазин</div>
     <div class="tab" onclick="pTab('settings',this)">Настройки</div>
   </div>
-
-  <div id="ptab-tasks">
-    <div id="p-children"></div>
-  </div>
-
+  <div id="ptab-tasks"><div id="p-children"></div></div>
   <div id="ptab-shop" style="display:none">
     <div class="p-section">
       <div class="p-sec-title"><i class="ti ti-bell"></i>Запросы на призы</div>
@@ -309,9 +232,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="p-sec-title"><i class="ti ti-building-store"></i>Список призов</div>
       <div id="p-shop-list"></div>
       <div style="margin-top:12px">
-        <div class="p-sec-title" style="font-size:13px;margin-bottom:8px">Добавить приз</div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px">Добавить приз</div>
         <div class="shop-edit-row">
-          <input type="text" class="emoji-input" id="new-shop-emoji" placeholder="🎁" value="🎁">
+          <input type="text" class="emoji-input" id="new-shop-emoji" value="🎁">
           <input type="text" id="new-shop-name" placeholder="Название приза">
           <input type="number" id="new-shop-cost" placeholder="баллы" min="1">
           <button class="p-action-btn btn-green" onclick="addShopItem()">Добавить</button>
@@ -329,7 +252,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="msg" id="spend-msg"></div>
     </div>
   </div>
-
   <div id="ptab-settings" style="display:none">
     <div class="p-section">
       <div class="p-sec-title"><i class="ti ti-plus"></i>Добавить задание</div>
@@ -338,7 +260,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <input type="text" id="new-task-name" placeholder="Название задания">
       </div>
       <div class="p-row">
-        <input type="number" id="new-task-pts" placeholder="баллы" min="1" value="20">
+        <input type="number" id="new-task-pts" placeholder="баллы" value="20">
         <select id="new-task-freq" onchange="freqChange()">
           <option value="daily">каждый день</option>
           <option value="chosen_days">выбрать дни</option>
@@ -349,19 +271,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       </div>
       <div id="days-picker-wrap" style="display:none;margin-bottom:8px">
         <div class="days-picker" id="days-picker">
-          <span class="day-toggle" data-d="1">Пн</span>
-          <span class="day-toggle" data-d="2">Вт</span>
-          <span class="day-toggle" data-d="3">Ср</span>
-          <span class="day-toggle" data-d="4">Чт</span>
-          <span class="day-toggle" data-d="5">Пт</span>
-          <span class="day-toggle" data-d="6">Сб</span>
+          <span class="day-toggle" data-d="1">Пн</span><span class="day-toggle" data-d="2">Вт</span>
+          <span class="day-toggle" data-d="3">Ср</span><span class="day-toggle" data-d="4">Чт</span>
+          <span class="day-toggle" data-d="5">Пт</span><span class="day-toggle" data-d="6">Сб</span>
           <span class="day-toggle" data-d="0">Вс</span>
         </div>
       </div>
       <button class="p-action-btn btn-green" style="width:100%" onclick="addTask()">Добавить задание</button>
       <div class="msg" id="add-task-msg"></div>
     </div>
-
     <div class="p-section">
       <div class="p-sec-title"><i class="ti ti-list"></i>Все задания</div>
       <div id="p-all-tasks"></div>
@@ -370,438 +288,401 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 </div>
 
 <script>
+const SUPABASE_URL = 'https://ejgakvoxkdpdpfrvfeiy.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqZ2Frdm94a2RwZHBmcnZmZWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NDg0NDcsImV4cCI6MjA5NjIyNDQ0N30.09RJtYUNDhvFRIfxi7vXmSYi-Bp7SggdNWi2KkFbkdM';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const PIN = '1234';
 let pinVal = '';
 let currentWho = null;
-let TODAY = new Date().toISOString().slice(0,10);
-
+const TODAY = new Date().toISOString().slice(0,10);
 const DAYS_RU = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 const MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 
 function fmtDate(d) {
-  const dt = new Date(d + 'T12:00:00');
-  return dt.getDate() + ' ' + MONTHS[dt.getMonth()] + ', ' + DAYS_RU[dt.getDay()];
+  const dt = new Date(d+'T12:00:00');
+  return dt.getDate()+' '+MONTHS[dt.getMonth()]+', '+DAYS_RU[dt.getDay()];
+}
+function getWeekDates() {
+  const today = new Date(TODAY+'T12:00:00');
+  const dow = today.getDay();
+  const mon = new Date(today);
+  mon.setDate(today.getDate()-((dow===0?7:dow)-1));
+  const dates=[];
+  for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);dates.push(d.toISOString().slice(0,10));}
+  return dates;
+}
+function getWeekStart() { return getWeekDates()[0]; }
+function isTaskActive(task, dateStr) {
+  const d = new Date(dateStr+'T12:00:00');
+  const dow = d.getDay();
+  if(task.freq==='daily') return true;
+  if(task.freq==='chosen_days') return (task.days||'').split(',').map(Number).includes(dow);
+  return true;
+}
+function freqLabel(t) {
+  if(t.freq==='daily') return 'Каждый день';
+  if(t.freq==='chosen_days'){const dm={0:'Вс',1:'Пн',2:'Вт',3:'Ср',4:'Чт',5:'Пт',6:'Сб'};return(t.days||'').split(',').map(d=>dm[d]).join(', ');}
+  return '';
 }
 
-function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo(0,0);
-}
-function goBack() { show('screen-profiles'); }
-
-function showPin() {
-  pinVal = ''; updateDots();
-  document.getElementById('pin-err').textContent = '';
-  document.getElementById('pin-backdrop').classList.add('show');
-}
-function hidePin() { document.getElementById('pin-backdrop').classList.remove('show'); }
-function updateDots() {
-  for(let i=0;i<4;i++) document.getElementById('d'+i).className = 'pin-dot'+(i<pinVal.length?' filled':'');
-}
-function pin(v) {
-  if(v==='del'){ pinVal=pinVal.slice(0,-1); updateDots(); return; }
-  if(pinVal.length>=4) return;
-  pinVal+=v; updateDots();
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function goBack(){show('screen-profiles');}
+function showPin(){pinVal='';updateDots();document.getElementById('pin-err').textContent='';document.getElementById('pin-backdrop').classList.add('show');}
+function hidePin(){document.getElementById('pin-backdrop').classList.remove('show');}
+function updateDots(){for(let i=0;i<4;i++)document.getElementById('d'+i).className='pin-dot'+(i<pinVal.length?' filled':'');}
+function pin(v){
+  if(v==='del'){pinVal=pinVal.slice(0,-1);updateDots();return;}
+  if(pinVal.length>=4)return;
+  pinVal+=v;updateDots();
   if(pinVal.length===4){
-    if(pinVal===PIN){ hidePin(); openParent(); }
-    else { document.getElementById('pin-err').textContent='Неверный PIN'; pinVal=''; updateDots(); }
+    if(pinVal===PIN){hidePin();openParent();}
+    else{document.getElementById('pin-err').textContent='Неверный PIN';pinVal='';updateDots();}
   }
 }
 
 async function openChild(who) {
-  currentWho = who;
-  const el = id => document.getElementById(id);
-  el('ch-header').className = 'child-header ch-'+who;
-  el('ch-avatar').className = 'p-avatar p-av-'+who;
-  el('ch-avatar').textContent = who==='vova'?'🚀':'🌸';
-  el('ch-name').className = 'ch-name ch-name-'+who;
-  el('ch-name').textContent = who==='vova'?'Вова':'Алиса';
-  el('ch-date').textContent = fmtDate(TODAY);
-  el('ch-score-pill').className = 'score-pill sp-'+who;
-  el('ch-score-num').className = 'sp-num sp-num-'+who;
-  el('ch-score-lbl').className = 'sp-lbl sp-lbl-'+who;
-  el('ch-tasks').innerHTML = '<div class="spinner">Загружаем...</div>';
+  currentWho=who;
+  const el=id=>document.getElementById(id);
+  el('ch-header').className='child-header ch-'+who;
+  el('ch-avatar').className='p-avatar p-av-'+who;
+  el('ch-avatar').textContent=who==='vova'?'🚀':'🌸';
+  el('ch-name').className='ch-name ch-name-'+who;
+  el('ch-name').textContent=who==='vova'?'Вова':'Алиса';
+  el('ch-date').textContent=fmtDate(TODAY);
+  el('ch-score-pill').className='score-pill sp-'+who;
+  el('ch-score-num').className='sp-num sp-num-'+who;
+  el('ch-score-lbl').className='sp-lbl sp-lbl-'+who;
+  el('ch-tasks').innerHTML='<div class="spinner">Загружаем...</div>';
   show('screen-child');
   await refreshChild(who);
 }
 
 async function refreshChild(who) {
-  const data = await api('GET', `/api/state/${who}/${TODAY}`);
-  if(!data) return;
-  const el = id => document.getElementById(id);
-  el('ch-score-num').textContent = data.score;
-  renderDayStrip(who, data);
-  renderWeekBanner(who, data);
-  renderChildTasks(who, data);
-  renderChildShop(who, data);
+  const [tasksRes, scoresRes, recRes, shopRes, reqRes] = await Promise.all([
+    sb.from('tasks').select('*').eq('who',who).order('sort_order'),
+    sb.from('scores').select('*').eq('who',who).single(),
+    sb.from('daily_records').select('*').eq('date',TODAY).eq('who',who),
+    sb.from('shop_items').select('*').order('sort_order'),
+    sb.from('shop_requests').select('*').eq('who',who).eq('status','pending')
+  ]);
+  const tasks=(tasksRes.data||[]).filter(t=>isTaskActive(t,TODAY));
+  const score=scoresRes.data?.points||0;
+  const recMap={};
+  (recRes.data||[]).forEach(r=>recMap[r.task_id]=r.status);
+  const weekDates=getWeekDates();
+  const weekData={};
+  const allRecs = await sb.from('daily_records').select('*').eq('who',who).in('date',weekDates);
+  const allTasks = tasksRes.data||[];
+  weekDates.forEach(wd=>{
+    const recs=(allRecs.data||[]).filter(r=>r.date===wd);
+    const rm={};recs.forEach(r=>rm[r.task_id]=r.status);
+    const dt=allTasks.filter(t=>isTaskActive(t,wd));
+    weekData[wd]={allDone:dt.every(t=>rm[t.id]==='approved'||rm[t.id]==='cancelled')};
+  });
+  const bonusRes = await sb.from('state').select('*').eq('key','weekbonus:'+who+':'+getWeekStart()).single();
+  const weekBonusGiven=!!bonusRes.data;
+
+  document.getElementById('ch-score-num').textContent=score;
+  renderDayStrip(who,weekDates,weekData);
+  renderWeekBanner(who,tasks,recMap,weekBonusGiven);
+  renderChildTasks(who,tasks,recMap);
+  renderChildShop(who,shopRes.data||[],score,reqRes.data||[]);
 }
 
-function renderDayStrip(who, data) {
-  const strip = document.getElementById('ch-days');
-  const today = new Date(TODAY+'T12:00:00');
-  strip.innerHTML = '';
-  data.weekDates.forEach(wd => {
-    const d = new Date(wd+'T12:00:00');
-    const isToday = wd === TODAY;
-    const info = data.weekData[wd];
-    const pill = document.createElement('div');
-    let cls = 'day-pill';
-    if(isToday) cls += ' dp-today-'+who;
-    else if(info && info.allDone && new Date(wd) < today) cls += ' dp-done';
-    pill.className = cls;
-    pill.innerHTML = '<div>'+DAYS_RU[d.getDay()]+'</div><div class="dp-num">'+d.getDate()+'</div>';
+function renderDayStrip(who,weekDates,weekData){
+  const strip=document.getElementById('ch-days');
+  strip.innerHTML='';
+  const today=new Date(TODAY+'T12:00:00');
+  weekDates.forEach(wd=>{
+    const d=new Date(wd+'T12:00:00');
+    const isToday=wd===TODAY;
+    const pill=document.createElement('div');
+    let cls='day-pill';
+    if(isToday)cls+=' dp-today-'+who;
+    else if(weekData[wd]?.allDone&&d<today)cls+=' dp-done';
+    pill.className=cls;
+    pill.innerHTML='<div>'+DAYS_RU[d.getDay()]+'</div><div class="dp-num">'+d.getDate()+'</div>';
     strip.appendChild(pill);
   });
 }
 
-function renderWeekBanner(who, data) {
-  const el = document.getElementById('ch-week-banner');
-  const today = new Date(TODAY+'T12:00:00');
-  if(data.weekBonusGiven) {
-    el.className = 'week-banner wb-bonus';
-    el.innerHTML = '<i class="ti ti-trophy" style="font-size:18px"></i><span>Бонус за неделю уже получен! +100 баллов 🎉</span>';
-    return;
-  }
-  const total = data.tasks.length;
-  const approved = data.tasks.filter(t => data.records[t.id]==='approved').length;
-  const cancelled = data.tasks.filter(t => data.records[t.id]==='cancelled').length;
-  const left = total - approved - cancelled;
-  el.className = 'week-banner wb-'+who;
-  if(left===0 && total>0) el.innerHTML = '<i class="ti ti-star" style="font-size:18px"></i><span>Все задания выполнены сегодня! 🌟</span>';
-  else el.innerHTML = '<i class="ti ti-calendar" style="font-size:18px"></i><span>До бонуса +100 нужно выполнить всю неделю без пропусков</span>';
+function renderWeekBanner(who,tasks,recMap,bonusGiven){
+  const el=document.getElementById('ch-week-banner');
+  if(bonusGiven){el.className='week-banner wb-bonus';el.innerHTML='<i class="ti ti-trophy" style="font-size:18px"></i><span>Бонус за неделю получен! +100 баллов 🎉</span>';return;}
+  const left=tasks.filter(t=>recMap[t.id]!=='approved'&&recMap[t.id]!=='cancelled').length;
+  el.className='week-banner wb-'+who;
+  if(left===0&&tasks.length>0)el.innerHTML='<i class="ti ti-star" style="font-size:18px"></i><span>Все задания выполнены сегодня! 🌟</span>';
+  else el.innerHTML='<i class="ti ti-calendar" style="font-size:18px"></i><span>До бонуса +100 нужно выполнить всю неделю без пропусков</span>';
 }
 
-function renderChildTasks(who, data) {
-  const list = document.getElementById('ch-tasks');
-  list.innerHTML = '';
-  if(!data.tasks.length){ list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:14px">Заданий на сегодня нет!</div>'; return; }
-  data.tasks.forEach(t => {
-    const status = data.records[t.id] || 'none';
-    const checked = status==='checked';
-    const approved = status==='approved';
-    const cancelled = status==='cancelled';
-    const card = document.createElement('div');
-    card.className = 'task-card'+(approved?' done':'')+(cancelled?' cancelled':'');
-    const chk = document.createElement('div');
-    chk.className = 'task-check'+(approved?' ch-'+who+'-done':'')+(checked?' ch-pending':'');
-    chk.innerHTML = approved ? '<i class="ti ti-check"></i>' : checked ? '<i class="ti ti-clock" style="font-size:13px;color:#854F0B"></i>' : '';
-    if(!approved && !cancelled) chk.onclick = () => toggleCheck(who, t.id);
-    const info = document.createElement('div');
-    info.className = 'task-info';
-    let meta = cancelled ? 'Отменено на сегодня' : approved ? '+'+t.points+' баллов зачтено ✓' : checked ? 'Ждёт подтверждения...' : freqLabel(t);
-    info.innerHTML = '<div class="task-name">'+t.name+'</div><div class="task-meta">'+meta+'</div>';
-    const pts = document.createElement('div');
-    pts.className = 'task-pts '+(approved?'tp-done':'tp-'+who);
-    pts.textContent = '+'+t.points;
-    card.append(chk, info, pts);
-    list.appendChild(card);
+function renderChildTasks(who,tasks,recMap){
+  const list=document.getElementById('ch-tasks');
+  list.innerHTML='';
+  if(!tasks.length){list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text2);font-size:14px">Заданий на сегодня нет!</div>';return;}
+  tasks.forEach(t=>{
+    const status=recMap[t.id]||'none';
+    const checked=status==='checked',approved=status==='approved',cancelled=status==='cancelled';
+    const card=document.createElement('div');
+    card.className='task-card'+(approved?' done':'')+(cancelled?' cancelled':'');
+    const chk=document.createElement('div');
+    chk.className='task-check'+(approved?' ch-'+who+'-done':'')+(checked?' ch-pending':'');
+    chk.innerHTML=approved?'<i class="ti ti-check"></i>':checked?'<i class="ti ti-clock" style="font-size:13px;color:#854F0B"></i>':'';
+    if(!approved&&!cancelled)chk.onclick=()=>toggleCheck(who,t.id);
+    const info=document.createElement('div');info.className='task-info';
+    const meta=cancelled?'Отменено на сегодня':approved?'+'+t.points+' баллов зачтено ✓':checked?'Ждёт подтверждения...':freqLabel(t);
+    info.innerHTML='<div class="task-name">'+t.name+'</div><div class="task-meta">'+meta+'</div>';
+    const pts=document.createElement('div');
+    pts.className='task-pts '+(approved?'tp-done':'tp-'+who);
+    pts.textContent='+'+t.points;
+    card.append(chk,info,pts);list.appendChild(card);
   });
 }
 
-function freqLabel(t) {
-  if(t.freq==='daily') return 'Каждый день';
-  if(t.freq==='weekly2') return '2× в неделю';
-  if(t.freq==='weekly3') return '3× в неделю';
-  if(t.freq==='chosen_days') {
-    const dmap = {0:'Вс',1:'Пн',2:'Вт',3:'Ср',4:'Чт',5:'Пт',6:'Сб'};
-    const ds = (t.days||'').split(',').map(d=>dmap[d]).join(', ');
-    return ds;
-  }
-  return '';
-}
-
-async function toggleCheck(who, taskId) {
-  await api('POST','/api/check',{who,taskId,date:TODAY});
-  await refreshChild(who);
-}
-
-function renderChildShop(who, data) {
-  const el = document.getElementById('ch-shop');
-  el.innerHTML = '';
-  if(!data.shopItems.length){ el.innerHTML='<div style="font-size:13px;color:var(--text2)">Магазин пока пуст</div>'; return; }
-  const myPendingIds = (data.myRequests||[]).map(r=>r.item_id);
-  data.shopItems.forEach(item => {
-    const canAfford = data.score >= item.cost;
-    const alreadySent = myPendingIds.includes(item.id);
-    const card = document.createElement('div');
-    card.className = 'shop-card';
-    const btnClass = alreadySent ? 'want-btn sent' : 'want-btn want-btn-'+who;
-    const btnText = alreadySent ? 'Запрос отправлен' : 'Хочу!';
-    card.innerHTML = `
-      <div class="shop-emoji">${item.emoji}</div>
-      <div class="shop-info">
-        <div class="shop-name">${item.name}</div>
-        <div class="shop-cost">${item.cost} баллов</div>
-        ${alreadySent?'<span class="request-badge">⏳ ждёт подтверждения</span>':''}
-      </div>
-      <div class="shop-action">
-        <button class="${btnClass}" ${(!canAfford||alreadySent)?'disabled':''} onclick="sendRequest('${who}','${item.id}',this)">${btnText}</button>
-      </div>`;
+function renderChildShop(who,items,score,myReqs){
+  const el=document.getElementById('ch-shop');
+  el.innerHTML='';
+  if(!items.length){el.innerHTML='<div style="font-size:13px;color:var(--text2)">Магазин пока пуст</div>';return;}
+  const pendingIds=myReqs.map(r=>r.item_id);
+  items.forEach(item=>{
+    const canAfford=score>=item.cost;
+    const sent=pendingIds.includes(item.id);
+    const card=document.createElement('div');card.className='shop-card';
+    card.innerHTML=`<div class="shop-emoji">${item.emoji}</div>
+      <div class="shop-info"><div class="shop-name">${item.name}</div><div class="shop-cost">${item.cost} баллов</div>${sent?'<span class="request-badge">⏳ ждёт подтверждения</span>':''}</div>
+      <div><button class="${sent?'want-btn sent':'want-btn want-btn-'+who}" ${(!canAfford||sent)?'disabled':''} onclick="sendRequest('${who}','${item.id}',this)">${sent?'Запрос отправлен':'Хочу!'}</button></div>`;
     el.appendChild(card);
   });
 }
 
-async function sendRequest(who, itemId, btn) {
-  btn.disabled = true;
-  const res = await api('POST','/api/shop/request',{who,itemId});
-  if(res && res.ok) { btn.textContent='Запрос отправлен'; btn.className='want-btn sent'; await refreshChild(who); }
-  else { btn.disabled=false; alert(res&&res.error||'Ошибка'); }
+async function toggleCheck(who,taskId){
+  const {data}=await sb.from('daily_records').select('*').eq('date',TODAY).eq('who',who).eq('task_id',taskId).single();
+  if(data&&data.status==='checked') await sb.from('daily_records').delete().eq('date',TODAY).eq('who',who).eq('task_id',taskId);
+  else if(!data) await sb.from('daily_records').insert({date:TODAY,who,task_id:taskId,status:'checked'});
+  await refreshChild(who);
 }
 
-async function openParent() {
-  document.getElementById('p-date').textContent = fmtDate(TODAY);
+async function sendRequest(who,itemId,btn){
+  btn.disabled=true;
+  const item=(await sb.from('shop_items').select('*').eq('id',itemId).single()).data;
+  if(!item){btn.disabled=false;return;}
+  await sb.from('shop_requests').insert({who,item_id:itemId,item_name:item.name,cost:item.cost,status:'pending',created_at:new Date().toISOString()});
+  btn.textContent='Запрос отправлен';btn.className='want-btn sent';
+  await refreshChild(who);
+}
+
+async function openParent(){
+  document.getElementById('p-date').textContent=fmtDate(TODAY);
   show('screen-parent');
   await refreshParent();
 }
 
-async function refreshParent() {
-  const data = await api('GET','/api/parent/'+TODAY);
-  if(!data) return;
-  renderParentChildren(data);
-  renderParentShop(data);
+async function refreshParent(){
+  const [vTasks,aTasks,scores,vRecs,aRecs,shopItems,shopReqs] = await Promise.all([
+    sb.from('tasks').select('*').eq('who','vova').order('sort_order'),
+    sb.from('tasks').select('*').eq('who','alisa').order('sort_order'),
+    sb.from('scores').select('*'),
+    sb.from('daily_records').select('*').eq('date',TODAY).eq('who','vova'),
+    sb.from('daily_records').select('*').eq('date',TODAY).eq('who','alisa'),
+    sb.from('shop_items').select('*').order('sort_order'),
+    sb.from('shop_requests').select('*').eq('status','pending').order('created_at')
+  ]);
+  const weekDates=getWeekDates();
+  const allRecs=await sb.from('daily_records').select('*').in('date',weekDates);
+  const bonusV=await sb.from('state').select('*').eq('key','weekbonus:vova:'+getWeekStart()).single();
+  const bonusA=await sb.from('state').select('*').eq('key','weekbonus:alisa:'+getWeekStart()).single();
+
+  const data={
+    vova:{tasks:(vTasks.data||[]).filter(t=>isTaskActive(t,TODAY)),allTasks:vTasks.data||[],score:scores.data?.find(s=>s.who==='vova')?.points||0,records:{},weekAllDone:false,weekBonusGiven:!!bonusV.data},
+    alisa:{tasks:(aTasks.data||[]).filter(t=>isTaskActive(t,TODAY)),allTasks:aTasks.data||[],score:scores.data?.find(s=>s.who==='alisa')?.points||0,records:{},weekAllDone:false,weekBonusGiven:!!bonusA.data}
+  };
+  (vRecs.data||[]).forEach(r=>data.vova.records[r.task_id]=r.status);
+  (aRecs.data||[]).forEach(r=>data.alisa.records[r.task_id]=r.status);
+
+  ['vova','alisa'].forEach(who=>{
+    const allT=data[who].allTasks;
+    data[who].weekAllDone=weekDates.every(wd=>{
+      const recs=(allRecs.data||[]).filter(r=>r.date===wd&&r.who===who);
+      const rm={};recs.forEach(r=>rm[r.task_id]=r.status);
+      return allT.filter(t=>isTaskActive(t,wd)).every(t=>rm[t.id]==='approved'||rm[t.id]==='cancelled');
+    });
+  });
+
+  renderParentChildren(data,shopReqs.data||[]);
+  renderParentShop(shopItems.data||[]);
   renderParentAllTasks(data);
 }
 
-function renderParentChildren(data) {
-  const cont = document.getElementById('p-children');
-  const reqCont = document.getElementById('p-requests');
-  cont.innerHTML = '';
-
-  ['vova','alisa'].forEach(who => {
-    const d = data.children[who];
-    const name = who==='vova'?'Вова':'Алиса';
-    const sec = document.createElement('div');
-    sec.className = 'parent-child';
-
-    sec.innerHTML = `<div class="pch-header pch-h-${who}">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:22px">${who==='vova'?'🚀':'🌸'}</span>
-        <span class="pch-name pch-name-${who}">${name}</span>
-      </div>
-      <div style="text-align:right">
-        <div class="pch-score pch-score-${who}">${d.score}</div>
-        <div class="pch-score-lbl">баллов</div>
-      </div>
-    </div>`;
-
-    d.tasks.forEach(t => {
-      const status = d.records[t.id] || 'none';
-      const approved = status==='approved', cancelled=status==='cancelled', checked=status==='checked';
-      const row = document.createElement('div');
-      row.className = 'p-task-row';
-      const sClass = cancelled?'ps-cancelled':approved?'ps-done':checked?'ps-pending':'ps-missed';
-      const sIcon = cancelled?'ti-minus':approved?'ti-check':checked?'ti-clock':'ti-x';
-      let actions = '';
-      if(cancelled) actions = `<button class="p-btn restore" onclick="restoreTask('${who}','${t.id}')">Вернуть</button>`;
-      else if(approved) actions = `<span style="font-size:12px;color:var(--green)">✓ зачтено</span>`;
-      else {
-        if(checked) actions += `<button class="p-btn approve" onclick="approveTask('${who}','${t.id}',${t.points})">Принять</button>`;
-        if(t.cancellable) actions += `<button class="p-btn cancel" onclick="cancelTask('${who}','${t.id}')">Отменить</button>`;
+function renderParentChildren(data,reqs){
+  const cont=document.getElementById('p-children');
+  cont.innerHTML='';
+  ['vova','alisa'].forEach(who=>{
+    const d=data[who];const name=who==='vova'?'Вова':'Алиса';
+    const sec=document.createElement('div');sec.className='parent-child';
+    sec.innerHTML=`<div class="pch-header pch-h-${who}">
+      <div style="display:flex;align-items:center;gap:10px"><span style="font-size:22px">${who==='vova'?'🚀':'🌸'}</span><span class="pch-name pch-name-${who}">${name}</span></div>
+      <div style="text-align:right"><div class="pch-score pch-score-${who}">${d.score}</div><div class="pch-score-lbl">баллов</div></div></div>`;
+    d.tasks.forEach(t=>{
+      const status=d.records[t.id]||'none';
+      const approved=status==='approved',cancelled=status==='cancelled',checked=status==='checked';
+      const row=document.createElement('div');row.className='p-task-row';
+      const sClass=cancelled?'ps-cancelled':approved?'ps-done':checked?'ps-pending':'ps-missed';
+      const sIcon=cancelled?'ti-minus':approved?'ti-check':checked?'ti-clock':'ti-x';
+      let actions='';
+      if(cancelled)actions=`<button class="p-btn restore" onclick="restoreTask('${who}','${t.id}')">Вернуть</button>`;
+      else if(approved)actions=`<span style="font-size:12px;color:var(--green)">✓ зачтено</span>`;
+      else{
+        if(checked)actions+=`<button class="p-btn approve" onclick="approveTask('${who}','${t.id}',${t.points})">Принять</button>`;
+        if(t.cancellable)actions+=`<button class="p-btn cancel" onclick="cancelTask('${who}','${t.id}')">Отменить</button>`;
       }
-      row.innerHTML = `<div class="p-status ${sClass}"><i class="ti ${sIcon}"></i></div>
-        <div class="p-task-name${cancelled?' strike':''}">${t.name}</div>
-        <div class="p-actions">${actions}</div>`;
+      row.innerHTML=`<div class="p-status ${sClass}"><i class="ti ${sIcon}"></i></div><div class="p-task-name${cancelled?' strike':''}">${t.name}</div><div class="p-actions">${actions}</div>`;
       sec.appendChild(row);
     });
-
-    if(d.weekAllDone && !d.weekBonusGiven) {
-      const br = document.createElement('div');
-      br.className = 'p-bonus-row';
-      br.innerHTML = `<i class="ti ti-trophy" style="font-size:20px;color:var(--amber-dark)"></i>
-        <span class="p-bonus-text">Неделя выполнена! Бонус +100</span>
-        <button class="p-action-btn btn-amber" onclick="giveBonus('${who}')">Начислить</button>`;
+    if(d.weekAllDone&&!d.weekBonusGiven){
+      const br=document.createElement('div');br.className='p-bonus-row';
+      br.innerHTML=`<i class="ti ti-trophy" style="font-size:20px;color:var(--amber-dark)"></i><span class="p-bonus-text">Неделя выполнена! Бонус +100</span><button class="p-action-btn btn-amber" onclick="giveBonus('${who}')">Начислить</button>`;
       sec.appendChild(br);
     }
-
     cont.appendChild(sec);
   });
 
-  const reqs = data.shopRequests || [];
-  if(!reqs.length) { reqCont.innerHTML='<div style="font-size:13px;color:var(--text2)">Нет новых запросов</div>'; return; }
-  reqCont.innerHTML = '';
-  reqs.forEach(r => {
-    const card = document.createElement('div');
-    card.className = 'req-card';
-    card.innerHTML = `<div class="req-who">${r.who==='vova'?'🚀':'🌸'}</div>
-      <div class="req-info">
-        <div class="req-name">${r.who==='vova'?'Вова':'Алиса'} хочет: ${r.item_name}</div>
-        <div class="req-meta">${r.cost} баллов</div>
-      </div>
-      <div style="display:flex;gap:6px">
-        <button class="p-btn approve" onclick="approveRequest(${r.id})">Выдать</button>
-        <button class="p-btn cancel" onclick="rejectRequest(${r.id})">Отказать</button>
-      </div>`;
+  const reqCont=document.getElementById('p-requests');
+  if(!reqs.length){reqCont.innerHTML='<div style="font-size:13px;color:var(--text2)">Нет новых запросов</div>';return;}
+  reqCont.innerHTML='';
+  reqs.forEach(r=>{
+    const card=document.createElement('div');card.className='req-card';
+    card.innerHTML=`<div class="req-who">${r.who==='vova'?'🚀':'🌸'}</div>
+      <div class="req-info"><div class="req-name">${r.who==='vova'?'Вова':'Алиса'} хочет: ${r.item_name}</div><div class="req-meta">${r.cost} баллов</div></div>
+      <div style="display:flex;gap:6px"><button class="p-btn approve" onclick="approveRequest(${r.id})">Выдать</button><button class="p-btn cancel" onclick="rejectRequest(${r.id})">Отказать</button></div>`;
     reqCont.appendChild(card);
   });
 }
 
-function renderParentShop(data) {
-  const el = document.getElementById('p-shop-list');
-  el.innerHTML = '';
-  (data.shopItems||[]).forEach(item => {
-    const row = document.createElement('div');
-    row.className = 'shop-admin-item';
-    row.id = 'shop-item-'+item.id;
-    row.innerHTML = `<div class="shop-admin-emoji">${item.emoji}</div>
-      <div class="shop-admin-name">${item.name}</div>
-      <div class="shop-admin-cost">${item.cost} б.</div>
-      <button class="p-btn" onclick="editShopItem('${item.id}','${item.name}',${item.cost},'${item.emoji}',this)"><i class="ti ti-edit"></i></button>
+function renderParentShop(items){
+  const el=document.getElementById('p-shop-list');el.innerHTML='';
+  items.forEach(item=>{
+    const row=document.createElement('div');row.className='shop-admin-item';row.id='si-'+item.id;
+    row.innerHTML=`<div class="shop-admin-emoji">${item.emoji}</div><div class="shop-admin-name">${item.name}</div><div class="shop-admin-cost">${item.cost} б.</div>
+      <button class="p-btn" onclick="editShopItem('${item.id}','${item.name}',${item.cost},'${item.emoji}')"><i class="ti ti-edit"></i></button>
       <button class="p-btn cancel" onclick="deleteShopItem('${item.id}')"><i class="ti ti-trash"></i></button>`;
     el.appendChild(row);
   });
 }
 
-function renderParentAllTasks(data) {
-  const el = document.getElementById('p-all-tasks');
-  el.innerHTML = '';
-  ['vova','alisa'].forEach(who => {
-    const name = who==='vova'?'Вова':'Алиса';
-    const header = document.createElement('div');
-    header.style.cssText = 'font-size:13px;font-weight:700;color:var(--text2);margin:10px 0 6px;';
-    header.textContent = name;
-    el.appendChild(header);
-    data.children[who].allTasks.forEach(t => {
-      const row = document.createElement('div');
-      row.className = 'shop-admin-item';
-      row.innerHTML = `<div style="flex:1;font-size:14px;color:var(--text)">${t.name}</div>
-        <div style="font-size:12px;color:var(--text2);margin-right:8px">${t.points}б · ${freqLabel(t)}</div>
+function renderParentAllTasks(data){
+  const el=document.getElementById('p-all-tasks');el.innerHTML='';
+  ['vova','alisa'].forEach(who=>{
+    const h=document.createElement('div');h.style.cssText='font-size:13px;font-weight:700;color:var(--text2);margin:10px 0 6px;';h.textContent=who==='vova'?'Вова':'Алиса';el.appendChild(h);
+    data[who].allTasks.forEach(t=>{
+      const row=document.createElement('div');row.className='shop-admin-item';
+      row.innerHTML=`<div style="flex:1;font-size:14px">${t.name}</div><div style="font-size:12px;color:var(--text2);margin-right:8px">${t.points}б · ${freqLabel(t)}</div>
         <button class="p-btn cancel" onclick="deleteTask('${t.id}')"><i class="ti ti-trash"></i></button>`;
       el.appendChild(row);
     });
   });
 }
 
-function editShopItem(id, name, cost, emoji, btn) {
-  const row = document.getElementById('shop-item-'+id);
-  row.innerHTML = `<div class="shop-edit-row" style="width:100%;flex-wrap:nowrap">
-    <input type="text" class="emoji-input" id="ei-emoji-${id}" value="${emoji}">
-    <input type="text" id="ei-name-${id}" value="${name}" style="flex:1">
-    <input type="number" id="ei-cost-${id}" value="${cost}">
+function editShopItem(id,name,cost,emoji){
+  const row=document.getElementById('si-'+id);
+  row.innerHTML=`<div class="shop-edit-row" style="width:100%">
+    <input type="text" class="emoji-input" id="ei-e-${id}" value="${emoji}">
+    <input type="text" id="ei-n-${id}" value="${name}" style="flex:1">
+    <input type="number" id="ei-c-${id}" value="${cost}">
     <button class="p-action-btn btn-green" onclick="saveShopItem('${id}')">Сохранить</button>
-    <button class="p-action-btn" onclick="refreshParent()" style="background:var(--gray-bg)">✕</button>
-  </div>`;
+    <button class="p-action-btn" onclick="refreshParent()" style="background:var(--gray-bg)">✕</button></div>`;
 }
-
-async function saveShopItem(id) {
-  const name = document.getElementById('ei-name-'+id).value.trim();
-  const cost = parseInt(document.getElementById('ei-cost-'+id).value);
-  const emoji = document.getElementById('ei-emoji-'+id).value.trim() || '🎁';
-  if(!name||!cost) return;
-  await api('PUT','/api/shop/'+id,{name,cost,emoji});
+async function saveShopItem(id){
+  const name=document.getElementById('ei-n-'+id).value.trim();
+  const cost=parseInt(document.getElementById('ei-c-'+id).value);
+  const emoji=document.getElementById('ei-e-'+id).value.trim()||'🎁';
+  if(!name||!cost)return;
+  await sb.from('shop_items').update({name,cost,emoji}).eq('id',id);
   await refreshParent();
 }
-
-async function addShopItem() {
-  const name = document.getElementById('new-shop-name').value.trim();
-  const cost = parseInt(document.getElementById('new-shop-cost').value);
-  const emoji = document.getElementById('new-shop-emoji').value.trim() || '🎁';
-  const msg = document.getElementById('add-shop-msg');
-  if(!name){ msg.className='msg err'; msg.textContent='Введи название'; return; }
-  if(!cost||cost<1){ msg.className='msg err'; msg.textContent='Введи стоимость'; return; }
-  await api('POST','/api/shop',{name,cost,emoji});
-  document.getElementById('new-shop-name').value='';
-  document.getElementById('new-shop-cost').value='';
-  document.getElementById('new-shop-emoji').value='🎁';
-  msg.className='msg ok'; msg.textContent='Приз добавлен!';
+async function addShopItem(){
+  const name=document.getElementById('new-shop-name').value.trim();
+  const cost=parseInt(document.getElementById('new-shop-cost').value);
+  const emoji=document.getElementById('new-shop-emoji').value.trim()||'🎁';
+  const msg=document.getElementById('add-shop-msg');
+  if(!name){msg.className='msg err';msg.textContent='Введи название';return;}
+  if(!cost||cost<1){msg.className='msg err';msg.textContent='Введи стоимость';return;}
+  await sb.from('shop_items').insert({id:'shop_'+Date.now(),name,cost,emoji,sort_order:Date.now()});
+  document.getElementById('new-shop-name').value='';document.getElementById('new-shop-cost').value='';document.getElementById('new-shop-emoji').value='🎁';
+  msg.className='msg ok';msg.textContent='Приз добавлен!';setTimeout(()=>msg.textContent='',2000);
+  await refreshParent();
+}
+async function deleteShopItem(id){if(!confirm('Удалить приз?'))return;await sb.from('shop_items').delete().eq('id',id);await refreshParent();}
+async function approveTask(who,taskId,points){
+  await sb.from('daily_records').upsert({date:TODAY,who,task_id:taskId,status:'approved'},{onConflict:'date,who,task_id'});
+  await sb.from('scores').update({points:sb.rpc}).eq('who',who);
+  const cur=(await sb.from('scores').select('points').eq('who',who).single()).data?.points||0;
+  await sb.from('scores').update({points:cur+points}).eq('who',who);
+  await refreshParent();
+}
+async function cancelTask(who,taskId){
+  await sb.from('daily_records').upsert({date:TODAY,who,task_id:taskId,status:'cancelled'},{onConflict:'date,who,task_id'});
+  await refreshParent();
+}
+async function restoreTask(who,taskId){
+  await sb.from('daily_records').delete().eq('date',TODAY).eq('who',who).eq('task_id',taskId);
+  await refreshParent();
+}
+async function giveBonus(who){
+  const key='weekbonus:'+who+':'+getWeekStart();
+  await sb.from('state').upsert({key,value:'1'},{onConflict:'key'});
+  const cur=(await sb.from('scores').select('points').eq('who',who).single()).data?.points||0;
+  await sb.from('scores').update({points:cur+100}).eq('who',who);
+  await refreshParent();
+}
+async function approveRequest(id){
+  const req=(await sb.from('shop_requests').select('*').eq('id',id).single()).data;
+  if(!req)return;
+  const cur=(await sb.from('scores').select('points').eq('who',req.who).single()).data?.points||0;
+  if(cur<req.cost){alert('Недостаточно баллов');return;}
+  await sb.from('shop_requests').update({status:'approved'}).eq('id',id);
+  await sb.from('scores').update({points:cur-req.cost}).eq('who',req.who);
+  await refreshParent();
+}
+async function rejectRequest(id){await sb.from('shop_requests').update({status:'rejected'}).eq('id',id);await refreshParent();}
+async function spendPoints(){
+  const who=document.getElementById('spend-who').value;
+  const amount=parseInt(document.getElementById('spend-amt').value);
+  const msg=document.getElementById('spend-msg');
+  if(!amount||amount<1){msg.className='msg err';msg.textContent='Введи количество';return;}
+  const cur=(await sb.from('scores').select('points').eq('who',who).single()).data?.points||0;
+  if(cur<amount){msg.className='msg err';msg.textContent='Недостаточно баллов';return;}
+  await sb.from('scores').update({points:cur-amount}).eq('who',who);
+  msg.className='msg ok';msg.textContent='Списано '+amount+' баллов';document.getElementById('spend-amt').value='';
   setTimeout(()=>msg.textContent='',2000);
   await refreshParent();
 }
-
-async function deleteShopItem(id) {
-  if(!confirm('Удалить приз?')) return;
-  await api('DELETE','/api/shop/'+id);
-  await refreshParent();
-}
-
-async function approveTask(who, taskId, points) {
-  await api('POST','/api/approve',{who,taskId,date:TODAY,points});
-  await refreshParent();
-}
-async function cancelTask(who, taskId) {
-  await api('POST','/api/cancel-task',{who,taskId,date:TODAY});
-  await refreshParent();
-}
-async function restoreTask(who, taskId) {
-  await api('POST','/api/restore-task',{who,taskId,date:TODAY});
-  await refreshParent();
-}
-async function giveBonus(who) {
-  await api('POST','/api/week-bonus',{who,date:TODAY});
-  await refreshParent();
-}
-async function approveRequest(id) {
-  const res = await api('POST','/api/shop/approve-request',{requestId:id});
-  if(res&&res.ok) await refreshParent();
-  else alert(res&&res.error||'Ошибка');
-}
-async function rejectRequest(id) {
-  await api('POST','/api/shop/reject-request',{requestId:id});
-  await refreshParent();
-}
-async function spendPoints() {
-  const who = document.getElementById('spend-who').value;
-  const amount = parseInt(document.getElementById('spend-amt').value);
-  const msg = document.getElementById('spend-msg');
-  if(!amount||amount<1){ msg.className='msg err'; msg.textContent='Введи количество'; return; }
-  const res = await api('POST','/api/spend',{who,amount});
-  if(res&&res.ok){ msg.className='msg ok'; msg.textContent='Списано '+amount+' баллов'; document.getElementById('spend-amt').value=''; await refreshParent(); }
-  else { msg.className='msg err'; msg.textContent=res&&res.error||'Ошибка'; }
-  setTimeout(()=>msg.textContent='',2000);
-}
-
-async function addTask() {
-  const who = document.getElementById('new-task-who').value;
-  const name = document.getElementById('new-task-name').value.trim();
-  const points = parseInt(document.getElementById('new-task-pts').value);
-  const freq = document.getElementById('new-task-freq').value;
-  const cancellable = document.getElementById('new-task-cancel').checked;
-  const msg = document.getElementById('add-task-msg');
-  let days = null;
-  if(freq==='chosen_days') {
-    const sel = [...document.querySelectorAll('.day-toggle.on')].map(el=>el.dataset.d);
-    if(!sel.length){ msg.className='msg err'; msg.textContent='Выбери хотя бы один день'; return; }
-    days = sel.join(',');
+async function addTask(){
+  const who=document.getElementById('new-task-who').value;
+  const name=document.getElementById('new-task-name').value.trim();
+  const points=parseInt(document.getElementById('new-task-pts').value);
+  const freq=document.getElementById('new-task-freq').value;
+  const cancellable=document.getElementById('new-task-cancel').checked;
+  const msg=document.getElementById('add-task-msg');
+  let days=null;
+  if(freq==='chosen_days'){
+    const sel=[...document.querySelectorAll('.day-toggle.on')].map(el=>el.dataset.d);
+    if(!sel.length){msg.className='msg err';msg.textContent='Выбери хотя бы один день';return;}
+    days=sel.join(',');
   }
-  if(!name){ msg.className='msg err'; msg.textContent='Введи название'; return; }
-  if(!points||points<1){ msg.className='msg err'; msg.textContent='Введи баллы'; return; }
-  const targets = who==='both'?['vova','alisa']:[who];
-  for(const w of targets) await api('POST','/api/tasks',{who:w,name,points,freq,days,cancellable});
+  if(!name){msg.className='msg err';msg.textContent='Введи название';return;}
+  if(!points||points<1){msg.className='msg err';msg.textContent='Введи баллы';return;}
+  const targets=who==='both'?['vova','alisa']:[who];
+  for(const w of targets)await sb.from('tasks').insert({id:'t_'+Date.now()+'_'+w,who:w,name,points,freq,days,cancellable,icon:'star',sort_order:Date.now()});
   document.getElementById('new-task-name').value='';
-  msg.className='msg ok'; msg.textContent='Задание добавлено!';
-  setTimeout(()=>msg.textContent='',2000);
+  msg.className='msg ok';msg.textContent='Задание добавлено!';setTimeout(()=>msg.textContent='',2000);
   await refreshParent();
 }
-
-async function deleteTask(id) {
-  if(!confirm('Удалить задание?')) return;
-  await api('DELETE','/api/tasks/'+id);
-  await refreshParent();
-}
-
-function freqChange() {
-  const f = document.getElementById('new-task-freq').value;
-  document.getElementById('days-picker-wrap').style.display = f==='chosen_days'?'block':'none';
-}
-document.querySelectorAll('.day-toggle').forEach(el => {
-  el.addEventListener('click', () => el.classList.toggle('on'));
-});
-
-function pTab(tab, el) {
-  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  ['tasks','shop','settings'].forEach(t => {
-    document.getElementById('ptab-'+t).style.display = t===tab?'block':'none';
-  });
-}
-
-async function api(method, url, body) {
-  try {
-    const opts = { method, headers: {'Content-Type':'application/json'} };
-    if(body) opts.body = JSON.stringify(body);
-    const r = await fetch(url, opts);
-    return await r.json();
-  } catch(e) { console.error(e); return null; }
+async function deleteTask(id){if(!confirm('Удалить задание?'))return;await sb.from('tasks').delete().eq('id',id);await refreshParent();}
+function freqChange(){document.getElementById('days-picker-wrap').style.display=document.getElementById('new-task-freq').value==='chosen_days'?'block':'none';}
+document.querySelectorAll('.day-toggle').forEach(el=>el.addEventListener('click',()=>el.classList.toggle('on')));
+function pTab(tab,el){
+  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  ['tasks','shop','settings'].forEach(t=>document.getElementById('ptab-'+t).style.display=t===tab?'block':'none');
 }
 </script>
 </body>
