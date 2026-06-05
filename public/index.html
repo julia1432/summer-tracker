@@ -372,7 +372,7 @@ async function refreshChild(who) {
   (recRes.data||[]).forEach(r=>recMap[r.task_id]=r.status);
   const weekDates=getWeekDates();
   const weekData={};
-  const allRecs = await sb.from('daily_records').select('*').eq('who',who).in('date',weekDates);
+  const allRecs = await sb.from('daily_records').select('*').eq('who',who).in('date',weekDates).limit(100);
   const allTasks = tasksRes.data||[];
   weekDates.forEach(wd=>{
     const recs=(allRecs.data||[]).filter(r=>r.date===wd);
@@ -488,7 +488,7 @@ async function refreshParent(){
     sb.from('shop_requests').select('*').eq('status','pending').order('created_at')
   ]);
   const weekDates=getWeekDates();
-  const allRecs=await sb.from('daily_records').select('*').in('date',weekDates);
+  const allRecs=await sb.from('daily_records').select('*').in('date',weekDates).limit(100);
   let bonusV={data:null},bonusA={data:null};
   try{bonusV=await sb.from('state').select('*').eq('key','weekbonus:vova:'+getWeekStart()).maybeSingle();}catch(e){}
   try{bonusA=await sb.from('state').select('*').eq('key','weekbonus:alisa:'+getWeekStart()).maybeSingle();}catch(e){}
