@@ -361,7 +361,7 @@ async function openChild(who) {
 async function refreshChild(who) {
   const [tasksRes, scoresRes, recRes, shopRes, reqRes] = await Promise.all([
     sb.from('tasks').select('*').eq('who',who).order('sort_order'),
-    sb.from('scores').select('*').eq('who',who).single(),
+    sb.from('scores').select('*').eq('who',who).maybeSingle(),
     sb.from('daily_records').select('*').eq('date',TODAY).eq('who',who),
     sb.from('shop_items').select('*').order('sort_order'),
     sb.from('shop_requests').select('*').eq('who',who).eq('status','pending')
@@ -464,7 +464,7 @@ async function toggleCheck(who,taskId){
 
 async function sendRequest(who,itemId,btn){
   btn.disabled=true;
-  const item=(await sb.from('shop_items').select('*').eq('id',itemId).single()).data;
+  const item=(await sb.from('shop_items').select('*').eq('id',itemId).maybeSingle()).data;
   if(!item){btn.disabled=false;return;}
   await sb.from('shop_requests').insert({who,item_id:itemId,item_name:item.name,cost:item.cost,status:'pending',created_at:new Date().toISOString()});
   btn.textContent='Запрос отправлен';btn.className='want-btn sent';
@@ -618,7 +618,7 @@ async function deleteShopItem(id){if(!confirm('Удалить приз?'))return
 async function approveTask(who,taskId,points){
   await sb.from('daily_records').upsert({date:TODAY,who,task_id:taskId,status:'approved'},{onConflict:'date,who,task_id'});
   await sb.from('scores').update({points:sb.rpc}).eq('who',who);
-  const cur=(await sb.from('scores').select('points').eq('who',who).single()).data?.points||0;
+  const cur=(await sb.from('scores').select('points').eq('who',who).maybeSingle()).data?.points||0;
   await sb.from('scores').update({points:cur+points}).eq('who',who);
   await refreshParent();
 }
@@ -632,14 +632,14 @@ async function restoreTask(who,taskId){
 }
 async function giveBonus(who){
   try{const key='weekbonus:'+who+':'+getWeekStart();await sb.from('state').upsert({key,value:'1'},{onConflict:'key'});}catch(e){}
-  const cur=(await sb.from('scores').select('points').eq('who',who).single()).data?.points||0;
+  const cur=(await sb.from('scores').select('points').eq('who',who).maybeSingle()).data?.points||0;
   await sb.from('scores').update({points:cur+100}).eq('who',who);
   await refreshParent();
 }
 async function approveRequest(id){
-  const req=(await sb.from('shop_requests').select('*').eq('id',id).single()).data;
+  const req=(await sb.from('shop_requests').select('*').eq('id',id).maybeSingle()).data;
   if(!req)return;
-  const cur=(await sb.from('scores').select('points').eq('who',req.who).single()).data?.points||0;
+  const cur=(await sb.from('scores').select('points').eq('who',req.who).maybeSingle()).data?.points||0;
   if(cur<req.cost){alert('Недостаточно баллов');return;}
   await sb.from('shop_requests').update({status:'approved'}).eq('id',id);
   await sb.from('scores').update({points:cur-req.cost}).eq('who',req.who);
@@ -651,7 +651,7 @@ async function spendPoints(){
   const amount=parseInt(document.getElementById('spend-amt').value);
   const msg=document.getElementById('spend-msg');
   if(!amount||amount<1){msg.className='msg err';msg.textContent='Введи количество';return;}
-  const cur=(await sb.from('scores').select('points').eq('who',who).single()).data?.points||0;
+  const cur=(await sb.from('scores').select('points').eq('who',who).maybeSingle()).data?.points||0;
   if(cur<amount){msg.className='msg err';msg.textContent='Недостаточно баллов';return;}
   await sb.from('scores').update({points:cur-amount}).eq('who',who);
   msg.className='msg ok';msg.textContent='Списано '+amount+' баллов';document.getElementById('spend-amt').value='';
