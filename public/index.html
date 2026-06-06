@@ -39,7 +39,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .pin-cancel{font-size:13px;color:var(--text2);cursor:pointer;margin-top:8px;display:inline-block}
 .back-btn{display:flex;align-items:center;gap:6px;color:var(--text2);font-size:14px;cursor:pointer;background:none;border:none;padding:0;margin-bottom:16px}
 .child-header{border-radius:var(--radius);padding:16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
-.ch-vova{background:var(--blue-light)}.ch-alisa{background:var(--pink-light)}
+.ch-vova{background:var(--blue-light)}.ch-alisa{background:var(--pink-light)}.ch-varya{background:#FFF8EE}
+.ch-name-vova{color:var(--blue-dark)}.ch-name-alisa{color:var(--pink-dark)}.ch-name-varya{color:#7A4500}
+.p-av-varya{background:#FFF0D6}
+.sp-varya{background:#FFD98E}
+.sp-num-varya{color:#7A4500}
+.sp-lbl-varya{color:#A05A00}
+.want-btn-varya{background:#E8943A;color:#fff}
+.tp-varya{background:#FFF0D6;color:#7A4500}
+.dp-today-varya{background:#FFF0D6;border-color:#FFD98E;color:#7A4500}
+.wb-varya{background:#FFF8EE;color:#7A4500}
+.task-check.ch-varya-done{background:#E8943A;border-color:#E8943A;color:#fff}
 .ch-left{display:flex;align-items:center;gap:12px}
 .ch-name{font-size:20px;font-weight:700}
 .ch-name-vova{color:var(--blue-dark)}.ch-name-alisa{color:var(--pink-dark)}
@@ -156,6 +166,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <button class="profile-btn" onclick="openChild('alisa')">
     <div class="p-avatar p-av-alisa">🌸</div>
     <div><div class="p-name">Алиса</div><div class="p-hint">7 лет · мои задания</div></div>
+    <i class="ti ti-chevron-right p-arrow"></i>
+  </button>
+  <button class="profile-btn" onclick="openChild('varya')">
+    <div class="p-avatar" style="background:#FFF0D6">🦋</div>
+    <div><div class="p-name">Варя</div><div class="p-hint">5 лет · мои задания</div></div>
     <i class="ti ti-chevron-right p-arrow"></i>
   </button>
   <button class="profile-btn" onclick="showPin()">
@@ -343,26 +358,23 @@ async function openChild(who){
   const el=id=>document.getElementById(id);
   el('ch-header').className='child-header ch-'+who;
   el('ch-avatar').className='p-avatar p-av-'+who;
-  el('ch-avatar').textContent=who==='vova'?'🚀':'🌸';
+  el('ch-avatar').textContent=who==='vova'?'🚀':who==='alisa'?'🌸':'🦋';
   el('ch-name').className='ch-name ch-name-'+who;
-  el('ch-name').textContent=who==='vova'?'Вова':'Алиса';
+  el('ch-name').textContent=who==='vova'?'Вова':who==='alisa'?'Алиса':'Варя';
   el('ch-date').textContent=fmtDate(TODAY);
   el('ch-score-pill').className='score-pill sp-'+who;
   el('ch-score-num').className='sp-num sp-num-'+who;
-  el('ch-score-lbl').className='sp-lbl sp-lbl-'+who;
-  el('ch-tasks').innerHTML='<div class="spinner">Загружаем...</div>';
+  el('ch-score-lbl').className='sp-lbl sp-lbl-'+who;  el('ch-tasks').innerHTML='<div class="spinner">Загружаем...</div>';
   show('screen-child');
   await refreshChild(who);
 }
 
 async function refreshChild(who){
-  const [tasks,scoreArr,recs,shopItems,myReqs]=await Promise.all([
-    q('tasks?select=*&who=eq.'+who+'&order=sort_order'),
-    q('scores?select=points&who=eq.'+who),
-    q('daily_records?select=task_id,status&date=eq.'+TODAY+'&who=eq.'+who),
-    q('shop_items?select=*&order=sort_order'),
-    q('shop_requests?select=*&who=eq.'+who+'&status=eq.pending')
-  ]);
+  const tasks=await q('tasks?select=*&who=eq.'+who+'&order=sort_order');
+  const scoreArr=await q('scores?select=points&who=eq.'+who);
+  const recs=await q('daily_records?select=task_id,status&date=eq.'+TODAY+'&who=eq.'+who);
+  const shopItems=await q('shop_items?select=*&order=sort_order');
+  const myReqs=await q('shop_requests?select=*&who=eq.'+who+'&status=eq.pending');
   const score=scoreArr&&scoreArr[0]?scoreArr[0].points:0;
   const recMap={};(recs||[]).forEach(r=>recMap[r.task_id]=r.status);
   const todayTasks=(tasks||[]).filter(t=>isTaskActive(t,TODAY));
@@ -463,16 +475,14 @@ async function openParent(){
 
 async function refreshParent(){
   const weekDates=getWeekDates();
-  const [vTasks,aTasks,scores,vRecs,aRecs,shopItems,shopReqs,allRecs]=await Promise.all([
-    q('tasks?select=*&who=eq.vova&order=sort_order'),
-    q('tasks?select=*&who=eq.alisa&order=sort_order'),
-    q('scores?select=*'),
-    q('daily_records?select=task_id,status&date=eq.'+TODAY+'&who=eq.vova'),
-    q('daily_records?select=task_id,status&date=eq.'+TODAY+'&who=eq.alisa'),
-    q('shop_items?select=*&order=sort_order'),
-    q('shop_requests?select=*&status=eq.pending&order=created_at'),
-    q('daily_records?select=date,who,task_id,status&date=gte.'+weekDates[0]+'&date=lte.'+weekDates[6])
-  ]);
+  const vTasks=await q('tasks?select=*&who=eq.vova&order=sort_order');
+  const aTasks=await q('tasks?select=*&who=eq.alisa&order=sort_order');
+  const scores=await q('scores?select=*');
+  const vRecs=await q('daily_records?select=task_id,status&date=eq.'+TODAY+'&who=eq.vova');
+  const aRecs=await q('daily_records?select=task_id,status&date=eq.'+TODAY+'&who=eq.alisa');
+  const shopItems=await q('shop_items?select=*&order=sort_order');
+  const shopReqs=await q('shop_requests?select=*&status=eq.pending&order=created_at');
+  const allRecs=await q('daily_records?select=date,who,task_id,status&date=gte.'+weekDates[0]+'&date=lte.'+weekDates[6]);
   const data={
     vova:{tasks:(vTasks||[]).filter(t=>isTaskActive(t,TODAY)),allTasks:vTasks||[],score:(scores||[]).find(s=>s.who==='vova')?.points||0,records:{},weekAllDone:false},
     alisa:{tasks:(aTasks||[]).filter(t=>isTaskActive(t,TODAY)),allTasks:aTasks||[],score:(scores||[]).find(s=>s.who==='alisa')?.points||0,records:{},weekAllDone:false}
