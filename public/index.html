@@ -312,6 +312,7 @@ async function qone(path){const d=await q(path+'&limit=1');return d&&d[0]||null;
 const PIN='1234';
 let pinVal='';
 let currentWho=null;
+let selectedDate=new Date().toISOString().slice(0,10);
 const TODAY=new Date().toISOString().slice(0,10);
 const DAYS_RU=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 const MONTHS=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
@@ -355,13 +356,14 @@ function pin(v){
 
 async function openChild(who){
   currentWho=who;
+  selectedDate=TODAY;
   const el=id=>document.getElementById(id);
   el('ch-header').className='child-header ch-'+who;
   el('ch-avatar').className='p-avatar p-av-'+who;
   el('ch-avatar').textContent=who==='vova'?'🚀':who==='alisa'?'🌸':'🦋';
   el('ch-name').className='ch-name ch-name-'+who;
   el('ch-name').textContent=who==='vova'?'Вова':who==='alisa'?'Алиса':'Варя';
-  el('ch-date').textContent=fmtDate(TODAY);
+  el('ch-date').textContent=fmtDate(selectedDate);
   el('ch-score-pill').className='score-pill sp-'+who;
   el('ch-score-num').className='sp-num sp-num-'+who;
   el('ch-score-lbl').className='sp-lbl sp-lbl-'+who;  el('ch-tasks').innerHTML='<div class="spinner">Загружаем...</div>';
@@ -372,12 +374,12 @@ async function openChild(who){
 async function refreshChild(who){
   const tasks=await q('tasks?select=*&who=eq.'+who+'&order=sort_order');
   const scoreArr=await q('scores?select=points&who=eq.'+who);
-  const recs=await q('daily_records?select=task_id,status&date=eq.'+TODAY+'&who=eq.'+who);
+  const recs=await q('daily_records?select=task_id,status&date=eq.'+selectedDate+'&who=eq.'+who);
   const shopItems=await q('shop_items?select=*&order=sort_order');
   const myReqs=await q('shop_requests?select=*&who=eq.'+who+'&status=eq.pending');
   const score=scoreArr&&scoreArr[0]?scoreArr[0].points:0;
   const recMap={};(recs||[]).forEach(r=>recMap[r.task_id]=r.status);
-  const todayTasks=(tasks||[]).filter(t=>isTaskActive(t,TODAY));
+  const todayTasks=(tasks||[]).filter(t=>isTaskActive(t,selectedDate));
   const weekDates=getWeekDates();
   const allRecs=await q('daily_records?select=date,task_id,status&who=eq.'+who+'&date=gte.'+weekDates[0]+'&date=lte.'+weekDates[6]);
   const weekData={};
@@ -397,13 +399,17 @@ function renderDayStrip(who,weekDates,weekData){
   const strip=document.getElementById('ch-days');strip.innerHTML='';
   const today=new Date(TODAY+'T12:00:00');
   weekDates.forEach(wd=>{
-    const d=new Date(wd+'T12:00:00');const isToday=wd===TODAY;
+    const d=new Date(wd+'T12:00:00');
+    const isSelected=wd===selectedDate;
+    const isToday=wd===TODAY;
     const pill=document.createElement('div');
     let cls='day-pill';
-    if(isToday)cls+=' dp-today-'+who;
+    if(isSelected)cls+=' dp-today-'+who;
     else if(weekData[wd]&&weekData[wd].allDone&&d<today)cls+=' dp-done';
     pill.className=cls;
-    pill.innerHTML='<div>'+DAYS_RU[d.getDay()]+'</div><div class="dp-num">'+d.getDate()+'</div>';
+    pill.style.cursor='pointer';
+    pill.innerHTML='<div>'+DAYS_RU[d.getDay()]+'</div><div class="dp-num">'+d.getDate()+(isToday?' •':'')+'</div>';
+    pill.onclick=()=>{selectedDate=wd;document.getElementById('ch-date').textContent=fmtDate(wd);refreshChild(who);};
     strip.appendChild(pill);
   });
 }
@@ -449,11 +455,11 @@ function renderChildShop(who,items,score,myReqs){
 }
 
 async function toggleCheck(who,taskId){
-  const existing=await q('daily_records?select=id,status&date=eq.'+TODAY+'&who=eq.'+who+'&task_id=eq.'+taskId);
+  const existing=await q('daily_records?select=id,status&date=eq.'+selectedDate+'&who=eq.'+who+'&task_id=eq.'+taskId);
   if(existing&&existing.length&&existing[0].status==='checked'){
-    await q('daily_records?date=eq.'+TODAY+'&who=eq.'+who+'&task_id=eq.'+taskId,'DELETE');
+    await q('daily_records?date=eq.'+selectedDate+'&who=eq.'+who+'&task_id=eq.'+taskId,'DELETE');
   } else if(!existing||!existing.length){
-    await q('daily_records','POST',{date:TODAY,who,task_id:taskId,status:'checked'});
+    await q('daily_records','POST',{date:selectedDate,who,task_id:taskId,status:'checked'});
   }
   await refreshChild(who);
 }
@@ -468,9 +474,33 @@ async function sendRequest(who,itemId,btn){
 }
 
 async function openParent(){
-  document.getElementById('p-date').textContent=fmtDate(TODAY);
+  selectedDate=TODAY;
+  document.getElementById('p-date').textContent=fmtDate(selectedDate);
   show('screen-parent');
+  renderParentDateStrip();
   await refreshParent();
+}
+
+function renderParentDateStrip(){
+  const weekDates=getWeekDates();
+  const cont=document.getElementById('p-children');
+  const strip=document.createElement('div');
+  strip.className='day-strip';strip.style.marginBottom='12px';
+  weekDates.forEach(wd=>{
+    const d=new Date(wd+'T12:00:00');
+    const isSelected=wd===selectedDate;
+    const pill=document.createElement('div');
+    pill.className='day-pill'+(isSelected?' dp-today-vova':'');
+    pill.style.cursor='pointer';
+    pill.innerHTML='<div>'+DAYS_RU[d.getDay()]+'</div><div class="dp-num">'+d.getDate()+(wd===TODAY?' •':'')+'</div>';
+    pill.onclick=async()=>{selectedDate=wd;document.getElementById('p-date').textContent=fmtDate(wd);renderParentDateStrip();await refreshParent();};
+    strip.appendChild(pill);
+  });
+  // Insert strip before p-children content
+  const ptab=document.getElementById('ptab-tasks');
+  const existing=ptab.querySelector('.day-strip');
+  if(existing)existing.remove();
+  ptab.insertBefore(strip,ptab.firstChild);
 }
 
 async function refreshParent(){
@@ -478,14 +508,14 @@ async function refreshParent(){
   const vTasks=await q('tasks?select=*&who=eq.vova&order=sort_order');
   const aTasks=await q('tasks?select=*&who=eq.alisa&order=sort_order');
   const scores=await q('scores?select=*');
-  const vRecs=await q('daily_records?select=task_id,status&date=eq.'+TODAY+'&who=eq.vova');
-  const aRecs=await q('daily_records?select=task_id,status&date=eq.'+TODAY+'&who=eq.alisa');
+  const vRecs=await q('daily_records?select=task_id,status&date=eq.'+selectedDate+'&who=eq.vova');
+  const aRecs=await q('daily_records?select=task_id,status&date=eq.'+selectedDate+'&who=eq.alisa');
   const shopItems=await q('shop_items?select=*&order=sort_order');
   const shopReqs=await q('shop_requests?select=*&status=eq.pending&order=created_at');
   const allRecs=await q('daily_records?select=date,who,task_id,status&date=gte.'+weekDates[0]+'&date=lte.'+weekDates[6]);
   const data={
-    vova:{tasks:(vTasks||[]).filter(t=>isTaskActive(t,TODAY)),allTasks:vTasks||[],score:(scores||[]).find(s=>s.who==='vova')?.points||0,records:{},weekAllDone:false},
-    alisa:{tasks:(aTasks||[]).filter(t=>isTaskActive(t,TODAY)),allTasks:aTasks||[],score:(scores||[]).find(s=>s.who==='alisa')?.points||0,records:{},weekAllDone:false}
+    vova:{tasks:(vTasks||[]).filter(t=>isTaskActive(t,selectedDate)),allTasks:vTasks||[],score:(scores||[]).find(s=>s.who==='vova')?.points||0,records:{},weekAllDone:false},
+    alisa:{tasks:(aTasks||[]).filter(t=>isTaskActive(t,selectedDate)),allTasks:aTasks||[],score:(scores||[]).find(s=>s.who==='alisa')?.points||0,records:{},weekAllDone:false}
   };
   (vRecs||[]).forEach(r=>data.vova.records[r.task_id]=r.status);
   (aRecs||[]).forEach(r=>data.alisa.records[r.task_id]=r.status);
@@ -588,22 +618,22 @@ async function addShopItem(){
 async function deleteShopItem(id){if(!confirm('Удалить приз?'))return;await q('shop_items?id=eq.'+id,'DELETE');await refreshParent();}
 
 async function approveTask(who,taskId,points){
-  const existing=await q('daily_records?select=id&date=eq.'+TODAY+'&who=eq.'+who+'&task_id=eq.'+taskId);
-  if(existing&&existing.length) await q('daily_records?date=eq.'+TODAY+'&who=eq.'+who+'&task_id=eq.'+taskId,'PATCH',{status:'approved'});
-  else await q('daily_records','POST',{date:TODAY,who,task_id:taskId,status:'approved'});
+  const existing=await q('daily_records?select=id&date=eq.'+selectedDate+'&who=eq.'+who+'&task_id=eq.'+taskId);
+  if(existing&&existing.length) await q('daily_records?date=eq.'+selectedDate+'&who=eq.'+who+'&task_id=eq.'+taskId,'PATCH',{status:'approved'});
+  else await q('daily_records','POST',{date:selectedDate,who,task_id:taskId,status:'approved'});
   const scoreArr=await q('scores?select=points&who=eq.'+who);
   const cur=scoreArr&&scoreArr[0]?scoreArr[0].points:0;
   await q('scores?who=eq.'+who,'PATCH',{points:cur+points});
   await refreshParent();
 }
 async function cancelTask(who,taskId){
-  const existing=await q('daily_records?select=id&date=eq.'+TODAY+'&who=eq.'+who+'&task_id=eq.'+taskId);
-  if(existing&&existing.length) await q('daily_records?date=eq.'+TODAY+'&who=eq.'+who+'&task_id=eq.'+taskId,'PATCH',{status:'cancelled'});
-  else await q('daily_records','POST',{date:TODAY,who,task_id:taskId,status:'cancelled'});
+  const existing=await q('daily_records?select=id&date=eq.'+selectedDate+'&who=eq.'+who+'&task_id=eq.'+taskId);
+  if(existing&&existing.length) await q('daily_records?date=eq.'+selectedDate+'&who=eq.'+who+'&task_id=eq.'+taskId,'PATCH',{status:'cancelled'});
+  else await q('daily_records','POST',{date:selectedDate,who,task_id:taskId,status:'cancelled'});
   await refreshParent();
 }
 async function restoreTask(who,taskId){
-  await q('daily_records?date=eq.'+TODAY+'&who=eq.'+who+'&task_id=eq.'+taskId,'DELETE');
+  await q('daily_records?date=eq.'+selectedDate+'&who=eq.'+who+'&task_id=eq.'+taskId,'DELETE');
   await refreshParent();
 }
 async function giveBonus(who){
