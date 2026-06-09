@@ -318,10 +318,13 @@ const DAYS_RU=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 const MONTHS=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 
 function fmtDate(d){const dt=new Date(d+'T12:00:00');return dt.getDate()+' '+MONTHS[dt.getMonth()]+', '+DAYS_RU[dt.getDay()];}
+let currentWeekOffset=0;
+
 function getWeekDates(){
   const today=new Date(TODAY+'T12:00:00');
   const dow=today.getDay();
-  const mon=new Date(today);mon.setDate(today.getDate()-((dow===0?7:dow)-1));
+  const mon=new Date(today);
+  mon.setDate(today.getDate()-((dow===0?7:dow)-1)+(currentWeekOffset*7));
   const dates=[];
   for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);dates.push(d.toISOString().slice(0,10));}
   return dates;
@@ -357,6 +360,7 @@ function pin(v){
 async function openChild(who){
   currentWho=who;
   selectedDate=TODAY;
+  currentWeekOffset=0;
   const el=id=>document.getElementById(id);
   el('ch-header').className='child-header ch-'+who;
   el('ch-avatar').className='p-avatar p-av-'+who;
@@ -398,20 +402,45 @@ async function refreshChild(who){
 function renderDayStrip(who,weekDates,weekData){
   const strip=document.getElementById('ch-days');strip.innerHTML='';
   const today=new Date(TODAY+'T12:00:00');
+
+  // Week nav row
+  const nav=document.createElement('div');
+  nav.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;';
+  const weekStart=new Date(weekDates[0]+'T12:00:00');
+  const weekEnd=new Date(weekDates[6]+'T12:00:00');
+  const weekLabel=weekStart.getDate()+' '+MONTHS[weekStart.getMonth()]+' – '+weekEnd.getDate()+' '+MONTHS[weekEnd.getMonth()];
+  nav.innerHTML='<button onclick="changeWeek(-1,\''+who+'\')" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:16px">←</button><span style="font-size:13px;color:var(--text2)">'+weekLabel+'</span><button onclick="changeWeek(1,\''+who+'\')" '+(currentWeekOffset>=0?'disabled style="opacity:0.3;background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:not-allowed;font-size:16px"':'style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:16px"')+'>→</button>';
+  strip.appendChild(nav);
+
+  // Days row
+  const daysRow=document.createElement('div');
+  daysRow.style.cssText='display:flex;gap:4px;margin-bottom:12px;';
   weekDates.forEach(wd=>{
     const d=new Date(wd+'T12:00:00');
     const isSelected=wd===selectedDate;
     const isToday=wd===TODAY;
+    const isFuture=d>today;
     const pill=document.createElement('div');
     let cls='day-pill';
     if(isSelected)cls+=' dp-today-'+who;
-    else if(weekData[wd]&&weekData[wd].allDone&&d<today)cls+=' dp-done';
+    else if(weekData[wd]&&weekData[wd].allDone&&!isFuture)cls+=' dp-done';
     pill.className=cls;
-    pill.style.cursor='pointer';
+    pill.style.cursor=isFuture?'not-allowed':'pointer';
+    pill.style.opacity=isFuture?'0.4':'1';
     pill.innerHTML='<div>'+DAYS_RU[d.getDay()]+'</div><div class="dp-num">'+d.getDate()+(isToday?' •':'')+'</div>';
-    pill.onclick=()=>{selectedDate=wd;document.getElementById('ch-date').textContent=fmtDate(wd);refreshChild(who);};
-    strip.appendChild(pill);
+    if(!isFuture)pill.onclick=()=>{selectedDate=wd;document.getElementById('ch-date').textContent=fmtDate(wd);refreshChild(who);};
+    daysRow.appendChild(pill);
   });
+  strip.appendChild(daysRow);
+}
+
+async function changeWeek(dir,who){
+  if(currentWeekOffset+dir>0)return;
+  currentWeekOffset+=dir;
+  const weekDates=getWeekDates();
+  selectedDate=weekDates[6]>TODAY?TODAY:weekDates[6];
+  document.getElementById('ch-date').textContent=fmtDate(selectedDate);
+  await refreshChild(who);
 }
 
 function renderWeekBanner(who,tasks,recMap){
@@ -475,6 +504,7 @@ async function sendRequest(who,itemId,btn){
 
 async function openParent(){
   selectedDate=TODAY;
+  currentWeekOffset=0;
   document.getElementById('p-date').textContent=fmtDate(selectedDate);
   show('screen-parent');
   renderParentDateStrip();
@@ -483,24 +513,50 @@ async function openParent(){
 
 function renderParentDateStrip(){
   const weekDates=getWeekDates();
-  const cont=document.getElementById('p-children');
-  const strip=document.createElement('div');
-  strip.className='day-strip';strip.style.marginBottom='12px';
+  const ptab=document.getElementById('ptab-tasks');
+  const existing=ptab.querySelector('.parent-week-nav');
+  if(existing)existing.remove();
+
+  const wrap=document.createElement('div');
+  wrap.className='parent-week-nav';
+  wrap.style.marginBottom='12px';
+
+  const weekStart=new Date(weekDates[0]+'T12:00:00');
+  const weekEnd=new Date(weekDates[6]+'T12:00:00');
+  const weekLabel=weekStart.getDate()+' '+MONTHS[weekStart.getMonth()]+' – '+weekEnd.getDate()+' '+MONTHS[weekEnd.getMonth()];
+
+  const nav=document.createElement('div');
+  nav.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;';
+  nav.innerHTML='<button onclick="changeParentWeek(-1)" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:16px">←</button><span style="font-size:13px;color:var(--text2)">'+weekLabel+'</span><button onclick="changeParentWeek(1)" '+(currentWeekOffset>=0?'disabled style="opacity:0.3;background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:16px"':'style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:16px"')+'>→</button>';
+  wrap.appendChild(nav);
+
+  const daysRow=document.createElement('div');
+  daysRow.className='day-strip';daysRow.style.marginBottom='0';
+  const today=new Date(TODAY+'T12:00:00');
   weekDates.forEach(wd=>{
     const d=new Date(wd+'T12:00:00');
     const isSelected=wd===selectedDate;
+    const isFuture=d>today;
     const pill=document.createElement('div');
     pill.className='day-pill'+(isSelected?' dp-today-vova':'');
-    pill.style.cursor='pointer';
+    pill.style.cursor=isFuture?'not-allowed':'pointer';
+    pill.style.opacity=isFuture?'0.4':'1';
     pill.innerHTML='<div>'+DAYS_RU[d.getDay()]+'</div><div class="dp-num">'+d.getDate()+(wd===TODAY?' •':'')+'</div>';
-    pill.onclick=async()=>{selectedDate=wd;document.getElementById('p-date').textContent=fmtDate(wd);renderParentDateStrip();await refreshParent();};
-    strip.appendChild(pill);
+    if(!isFuture)pill.onclick=async()=>{selectedDate=wd;document.getElementById('p-date').textContent=fmtDate(wd);renderParentDateStrip();await refreshParent();};
+    daysRow.appendChild(pill);
   });
-  // Insert strip before p-children content
-  const ptab=document.getElementById('ptab-tasks');
-  const existing=ptab.querySelector('.day-strip');
-  if(existing)existing.remove();
-  ptab.insertBefore(strip,ptab.firstChild);
+  wrap.appendChild(daysRow);
+  ptab.insertBefore(wrap,ptab.firstChild);
+}
+
+async function changeParentWeek(dir){
+  if(currentWeekOffset+dir>0)return;
+  currentWeekOffset+=dir;
+  const weekDates=getWeekDates();
+  selectedDate=weekDates[6]>TODAY?TODAY:weekDates[6];
+  document.getElementById('p-date').textContent=fmtDate(selectedDate);
+  renderParentDateStrip();
+  await refreshParent();
 }
 
 async function refreshParent(){
